@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Social Media Footer Adder</title>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+      body {
+        background: #111;
+        font-family: Arial, Helvetica, sans-serif;
+        color: white;
+        display: flex;
+        justify-content: center;
+        padding: 40px;
+      }
+
+      .container {
+        max-width: 650px;
+        width: 100%;
+        text-align: center;
+      }
+
+      input[type="file"],
+      select {
+        margin-bottom: 12px;
+        padding: 10px;
+        background: #222;
+        border: 1px solid #444;
+        color: white;
+        border-radius: 6px;
+        width: 100%;
+      }
+
+      button {
+        margin-top: 15px;
+        padding: 12px 20px;
+        background: #0af;
+        border: none;
+        border-radius: 6px;
+        color: #fff;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: bold;
+        width: 100%;
+      }
+
+      button:hover {
+        opacity: 0.85;
+      }
+
+      /* Image wrapper (relative for overlay footer) */
+      .preview-wrapper {
+        width: 100%;
+        display: none;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        background: #000;
+        margin-top: 10px;
+      }
+
+      /* Container that holds all images */
+      .images-container {
+        --cols: 1;
+        width: 100%;
+      }
+
+      /* Vertical layout */
+      .images-container.vertical {
+        display: flex;
+        flex-direction: column;
+      }
+      .images-container.vertical .preview-img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+      }
+
+      /* Horizontal layout */
+      .images-container.horizontal {
+        display: flex;
+        flex-direction: row;
+      }
+      .images-container.horizontal .preview-img {
+        flex: 1;
+        width: 0;
+        height: auto;
+        object-fit: cover;
+      }
+
+      /* Grid layout */
+      .images-container.grid {
+        display: grid;
+        grid-template-columns: repeat(var(--cols), 1fr);
+      }
+      .images-container.grid .preview-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .preview-img {
+        display: block;
+      }
+
+      /* Footer base */
+      .footer-bar {
+        width: 100%;
+        padding: 14px 22px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        color: white;
+        font-size: 14px;
+      }
+
+      /* Footer positioning modes */
+      .footer-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+      }
+
+      .footer-bottom {
+        position: static;
+      }
+
+      .footer-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .footer-icon {
+        font-size: 22px;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+      }
+
+      .footer-text {
+        line-height: 1.1;
+        text-align: left;
+        opacity: 1;
+      }
+
+      .footer-text b {
+        display: block;
+        font-size: 15px;
+        opacity: 1;
+      }
+
+      /* ===== THEMES (with 50% transparent background) ===== */
+
+      .theme-dark {
+        background: rgba(0, 0, 0, 0.5);
+      }
+
+      .theme-neon {
+        background: rgba(0, 255, 255, 0.5);
+        box-shadow: 0 0 20px #0ff;
+      }
+
+      .theme-glossy {
+        background: rgba(34, 34, 34, 0.5);
+        backdrop-filter: blur(10px);
+      }
+
+      .theme-gradient {
+        background: linear-gradient(
+          90deg,
+          rgba(255, 122, 224, 0.5),
+          rgba(93, 59, 255, 0.5),
+          rgba(45, 223, 255, 0.5)
+        );
+      }
+
+      .theme-mlbb {
+        background: linear-gradient(
+          90deg,
+          rgba(76, 44, 255, 0.5),
+          rgba(156, 54, 255, 0.5),
+          rgba(255, 216, 107, 0.5)
+        );
+      }
+
+      /* Glass Transparent Theme */
+      .theme-glass {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(18px) saturate(180%);
+        -webkit-backdrop-filter: blur(18px) saturate(180%);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+          0 8px 25px rgba(0, 0, 0, 0.35);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Social Media Footer Adder</h2>
+
+      <!-- Upload Image(s) -->
+      <input type="file" id="imgUpload" accept="image/*" multiple />
+
+      <!-- Layout Mode Selector -->
+      <select id="layoutMode">
+        <option value="vertical">Layout: Vertical Stack</option>
+        <option value="horizontal">Layout: Horizontal Row</option>
+        <option value="grid">Layout: Grid (Images per Row)</option>
+      </select>
+
+      <!-- Images per Row (used only for Grid mode) -->
+      <select id="imagesPerRow">
+        <option value="1">1 image per row</option>
+        <option value="2">2 images per row</option>
+        <option value="3" selected>3 images per row</option>
+        <option value="4">4 images per row</option>
+        <option value="5">5 images per row</option>
+      </select>
+
+      <!-- Footer Mode Selector -->
+      <select id="footerMode">
+        <option value="overlay">Footer: Overlay on Image</option>
+        <option value="bottom">Footer: Below Images</option>
+      </select>
+
+      <!-- Theme Selector -->
+      <select id="themeSelector">
+        <option value="dark">Theme: Dark</option>
+        <option value="neon">Theme: Neon</option>
+        <option value="glossy">Theme: Glossy</option>
+        <option value="gradient">Theme: Gradient</option>
+        <option value="mlbb">Theme: MLBB Style</option>
+        <option value="glass">Theme: Glass (Frosted)</option>
+      </select>
+
+      <!-- Uploaded images + footer -->
+      <div class="preview-wrapper" id="previewWrapper">
+        <div class="images-container vertical" id="imagesContainer"></div>
+
+        <div class="footer-bar theme-dark footer-overlay" id="footerBar">
+          <div class="footer-item">
+            <i class="fab fa-facebook footer-icon"></i>
+            <div class="footer-text">
+              Facebook
+              <b>Easy Topup Hub</b>
+            </div>
+          </div>
+
+          <div class="footer-item">
+            <i class="fab fa-facebook-messenger footer-icon"></i>
+            <div class="footer-text">
+              Messenger
+              <b>m.me/e4sytopup</b>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Download button -->
+      <button id="downloadBtn">Download Image with Footer</button>
+    </div>
+
+    <script>
+      const imgUpload = document.getElementById("imgUpload");
+      const imagesContainer = document.getElementById("imagesContainer");
+      const previewWrapper = document.getElementById("previewWrapper");
+      const footerBar = document.getElementById("footerBar");
+      const themeSelector = document.getElementById("themeSelector");
+      const layoutMode = document.getElementById("layoutMode");
+      const imagesPerRow = document.getElementById("imagesPerRow");
+      const footerMode = document.getElementById("footerMode");
+      const downloadBtn = document.getElementById("downloadBtn");
+
+      /* Load uploaded images (multiple) */
+      imgUpload.addEventListener("change", function () {
+        const files = Array.from(this.files || []);
+        imagesContainer.innerHTML = "";
+
+        if (!files.length) {
+          previewWrapper.style.display = "none";
+          return;
+        }
+
+        files.forEach((file) => {
+          if (!file.type.startsWith("image/")) return;
+
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const img = document.createElement("img");
+            img.className = "preview-img";
+            img.src = e.target.result;
+            imagesContainer.appendChild(img);
+            previewWrapper.style.display = "block";
+          };
+          reader.readAsDataURL(file);
+        });
+
+        applyLayout();
+      });
+
+      /* Theme switching */
+      themeSelector.addEventListener("change", function () {
+        footerBar.className = "footer-bar";
+        footerBar.classList.add("theme-" + this.value);
+        // keep footer positioning classes
+        applyFooterModeClassesOnly();
+      });
+
+      /* Layout switching */
+      function applyLayout() {
+        const mode = layoutMode.value;
+        imagesContainer.classList.remove("vertical", "horizontal", "grid");
+
+        if (mode === "vertical") {
+          imagesContainer.classList.add("vertical");
+        } else if (mode === "horizontal") {
+          imagesContainer.classList.add("horizontal");
+        } else if (mode === "grid") {
+          imagesContainer.classList.add("grid");
+          const cols = parseInt(imagesPerRow.value, 10) || 1;
+          imagesContainer.style.setProperty("--cols", cols);
+        }
+      }
+
+      layoutMode.addEventListener("change", applyLayout);
+
+      imagesPerRow.addEventListener("change", function () {
+        if (layoutMode.value === "grid") {
+          const cols = parseInt(this.value, 10) || 1;
+          imagesContainer.style.setProperty("--cols", cols);
+        }
+      });
+
+      /* Footer mode: overlay vs bottom */
+      function applyFooterMode() {
+        footerBar.classList.remove("footer-overlay", "footer-bottom");
+        if (footerMode.value === "overlay") {
+          footerBar.classList.add("footer-overlay");
+        } else {
+          footerBar.classList.add("footer-bottom");
+        }
+      }
+
+      function applyFooterModeClassesOnly() {
+        // called after theme change to reapply overlay/bottom
+        footerBar.classList.remove("footer-overlay", "footer-bottom");
+        if (footerMode.value === "overlay") {
+          footerBar.classList.add("footer-overlay");
+        } else {
+          footerBar.classList.add("footer-bottom");
+        }
+      }
+
+      footerMode.addEventListener("change", applyFooterMode);
+
+      /* Download combined PNG */
+      downloadBtn.addEventListener("click", () => {
+        if (
+          previewWrapper.style.display === "none" ||
+          !imagesContainer.children.length
+        ) {
+          alert("Please upload at least one image first.");
+          return;
+        }
+
+        html2canvas(previewWrapper, {
+          scale: 2,
+          backgroundColor: null,
+        }).then((canvas) => {
+          const link = document.createElement("a");
+          const randomString = Math.random().toString(36).substring(2, 10);
+          link.download = `image_with_footer_${randomString}.png`;
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        });
+      });
+
+      // initial footer mode
+      applyFooterMode();
+    </script>
+  </body>
+</html>
