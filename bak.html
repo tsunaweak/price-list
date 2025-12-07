@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Social Media Footer Adder</title>
+
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+      body,
+      div {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: #111;
+        color: #fff;
+        font-family: Arial, Helvetica, sans-serif;
+        display: flex;
+        justify-content: center;
+        padding: 40px;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 650px;
+      }
+
+      h2 {
+        margin-bottom: 16px;
+        text-align: center;
+      }
+
+      input[type="file"],
+      select {
+        margin-bottom: 12px;
+        padding: 10px;
+        background: #222;
+        border: 1px solid #444;
+        color: white;
+        border-radius: 6px;
+        width: 100%;
+      }
+
+      button {
+        margin-top: 15px;
+        padding: 12px 20px;
+        background: #0af;
+        border: none;
+        border-radius: 6px;
+        color: #fff;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: bold;
+        width: 100%;
+      }
+
+      .preview-wrapper {
+        width: 100%;
+        display: none;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        background: #000;
+        margin-top: 10px;
+      }
+
+      .images-container {
+        width: 100%;
+        --cols: 1;
+      }
+
+      .images-container.vertical {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .images-container.vertical img {
+        width: 100%;
+      }
+
+      .images-container.horizontal {
+        display: flex;
+      }
+
+      .images-container.horizontal img {
+        flex: 1;
+        width: 0;
+      }
+
+      .images-container.grid {
+        display: grid;
+        grid-template-columns: repeat(var(--cols), 1fr);
+      }
+
+      .preview-img {
+        display: block;
+        width: 100%;
+      }
+
+      /* ==============================
+         FOOTER WITH AUTO SCALING
+         ============================== */
+
+      :root {
+        --footer-scale: 1;
+      }
+
+      .footer {
+        background: #000;
+        padding: calc(20px * var(--footer-scale))
+          calc(40px * var(--footer-scale));
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+        letter-spacing: 0.5px;
+        box-sizing: border-box;
+        width: 100%;
+        transition: opacity 0.2s ease;
+      }
+
+      /* Overlay mode */
+      .footer.overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        opacity: 0.8;
+      }
+
+      /* Bottom mode */
+      .footer.bottom {
+        position: static;
+        opacity: 1;
+      }
+
+      .left-section {
+        display: flex;
+        gap: calc(40px * var(--footer-scale));
+        align-items: center;
+      }
+
+      .footer-item {
+        display: flex;
+        align-items: center;
+        gap: calc(10px * var(--footer-scale));
+      }
+
+      .footer-item img {
+        width: calc(35px * var(--footer-scale));
+        height: calc(35px * var(--footer-scale));
+        object-fit: contain;
+      }
+
+      .footer-labels {
+        display: flex;
+        flex-direction: column;
+        font-size: calc(18px * var(--footer-scale));
+      }
+
+      .footer-labels .title {
+        font-weight: bold;
+        font-size: calc(18px * var(--footer-scale));
+      }
+
+      /* MODE OF PAYMENT RIGHT SIDE */
+      .payment-logos {
+        display: flex;
+        gap: calc(20px * var(--footer-scale));
+        justify-content: center;
+        margin-bottom: 5px;
+      }
+
+      .payment-logos img {
+        height: calc(35px * var(--footer-scale));
+        object-fit: contain;
+      }
+
+      .payment-text {
+        font-size: calc(18px * var(--footer-scale));
+        letter-spacing: 1px;
+      }
+
+      /* SOCIAL ENGAGEMENT RIGHT SIDE */
+      .engage-icons {
+        display: flex;
+        gap: calc(30px * var(--footer-scale));
+        align-items: center;
+        justify-content: center;
+      }
+
+      .engage-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: calc(6px * var(--footer-scale));
+      }
+
+      .engage-item img {
+        height: calc(25px * var(--footer-scale));
+        object-fit: contain;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h2>Social Media Footer Adder</h2>
+
+      <input type="file" id="imgUpload" accept="image/*" multiple />
+
+      <select id="layoutMode">
+        <option value="vertical">Vertical</option>
+        <option value="horizontal">Horizontal</option>
+        <option value="grid">Grid</option>
+      </select>
+
+      <select id="imagesPerRow">
+        <option value="1">1 per row</option>
+        <option value="2">2 per row</option>
+        <option value="3" selected>3 per row</option>
+        <option value="4">4 per row</option>
+        <option value="5">5 per row</option>
+      </select>
+
+      <select id="footerPosition">
+        <option value="overlay">Footer: Overlay on Image</option>
+        <option value="bottom">Footer: Below Image</option>
+      </select>
+
+      <select id="footerType">
+        <option value="engagement">Footer: Social Engagement</option>
+        <option value="payment">Footer: Mode of Payment</option>
+      </select>
+
+      <div class="preview-wrapper" id="previewWrapper">
+        <div class="images-container vertical" id="imagesContainer"></div>
+
+        <!-- =========================
+             FOOTER TYPE: MODE OF PAYMENT
+        ========================== -->
+        <div class="footer overlay" id="footerPayment">
+          <div class="left-section">
+            <div class="footer-item">
+              <img
+                src="data:image/png;base64,PASTE_FACEBOOK_ICON_BASE64_HERE"
+              />
+              <div class="footer-labels">
+                <span class="title">Facebook</span>
+                <span>Noir's Discount Store</span>
+              </div>
+            </div>
+
+            <div class="footer-item">
+              <img
+                src="data:image/png;base64,PASTE_MESSENGER_ICON_BASE64_HERE"
+              />
+              <div class="footer-labels">
+                <span class="title">Messenger</span>
+                <span>noir.discount.store</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="right-section">
+            <div class="payment-logos">
+              <img
+                src="data:image/png;base64,PASTE_GCASH_ICON_BASE64_HERE"
+              />
+              <img
+                src="data:image/png;base64,PASTE_UNIONBANK_ICON_BASE64_HERE"
+              />
+
+              <img
+                src="data:image/png;base64,PASTE_BDO_ICON_BASE64_HERE"
+              />
+              <img
+                src="data:image/png;base64,PASTE_MARIBANK_ICON_BASE64_HERE"
+              />
+            </div>
+            <div class="payment-text">Modes of Payment</div>
+          </div>
+        </div>
+
+        <!-- =========================
+             FOOTER TYPE: SOCIAL ENGAGEMENT
+        ========================== -->
+        <div class="footer overlay" id="footerEngage" style="display: none">
+          <div class="left-section">
+            <div class="footer-item">
+              <img
+                src="data:image/png;base64,PASTE_FACEBOOK_ICON_BASE64_HERE"
+              />
+              <div class="footer-labels">
+                <span class="title">Facebook</span>
+                <span>Noir's Discount Store</span>
+              </div>
+            </div>
+
+            <div class="footer-item">
+              <img
+                src="data:image/png;base64,PASTE_MESSENGER_ICON_BASE64_HERE"
+              />
+              <div class="footer-labels">
+                <span class="title">Messenger</span>
+                <span>noir.discount.store</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="right-section">
+            <div class="engage-icons">
+              <div class="engage-item">
+                <img src="data:image/png;base64,PASTE_LIKE_ICON_BASE64_HERE" />
+              </div>
+
+              <div class="engage-item">
+                <img
+                  src="data:image/png;base64,PASTE_FOLLOW_ICON_BASE64_HERE"
+                />
+              </div>
+
+              <div class="engage-item">
+                <img src="data:image/png;base64,PASTE_SHARE_ICON_BASE64_HERE" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button id="downloadBtn">Download Image with Footer</button>
+    </div>
+
+    <script>
+      const imgUpload = document.getElementById("imgUpload");
+      const previewWrapper = document.getElementById("previewWrapper");
+      const imagesContainer = document.getElementById("imagesContainer");
+
+      const layoutMode = document.getElementById("layoutMode");
+      const imagesPerRow = document.getElementById("imagesPerRow");
+
+      const footerPosition = document.getElementById("footerPosition");
+      const footerType = document.getElementById("footerType");
+
+      const footerPayment = document.getElementById("footerPayment");
+      const footerEngage = document.getElementById("footerEngage");
+
+      const downloadBtn = document.getElementById("downloadBtn");
+
+      /* ===============================
+         FOOTER POSITION SWITCHER
+      =============================== */
+
+      function updateFooterPosition() {
+        const mode = footerPosition.value;
+
+        [footerPayment, footerEngage].forEach((footer) => {
+          footer.classList.remove("overlay", "bottom");
+          footer.classList.add(mode === "overlay" ? "overlay" : "bottom");
+        });
+      }
+
+      footerPosition.addEventListener("change", updateFooterPosition);
+      updateFooterPosition();
+
+      /* ===============================
+         FOOTER TYPE SWITCHER
+      =============================== */
+
+      function updateFooterType() {
+        if (footerType.value === "payment") {
+          footerPayment.style.display = "flex";
+          footerEngage.style.display = "none";
+        } else {
+          footerPayment.style.display = "none";
+          footerEngage.style.display = "flex";
+        }
+
+        updateFooterPosition();
+      }
+
+      footerType.addEventListener("change", updateFooterType);
+      updateFooterType();
+
+      /* ===============================
+         AUTO SCALE FOOTER BASED ON IMAGE WIDTH
+      =============================== */
+
+      function scaleFooter(img) {
+        const baseWidth = img.naturalWidth;
+        const renderedWidth = img.clientWidth || baseWidth;
+
+        let scale = renderedWidth / baseWidth;
+
+        if (scale < 0.6) scale = 0.6;
+        if (scale > 1.2) scale = 1.2;
+
+        document.documentElement.style.setProperty("--footer-scale", scale);
+      }
+
+      /* ===============================
+         LOAD IMAGES INSIDE PREVIEW
+      =============================== */
+
+      imgUpload.addEventListener("change", function () {
+        imagesContainer.innerHTML = "";
+        const files = Array.from(this.files);
+
+        if (!files.length) {
+          previewWrapper.style.display = "none";
+          return;
+        }
+
+        files.forEach((file) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = document.createElement("img");
+            img.src = e.target.result;
+            img.className = "preview-img";
+
+            img.onload = () => scaleFooter(img);
+
+            imagesContainer.appendChild(img);
+          };
+          reader.readAsDataURL(file);
+        });
+
+        previewWrapper.style.display = "block";
+        applyLayout();
+      });
+
+      /* ===============================
+         LAYOUT MODES
+      =============================== */
+
+      function applyLayout() {
+        const mode = layoutMode.value;
+
+        imagesContainer.classList.remove("vertical", "horizontal", "grid");
+
+        if (mode === "vertical") imagesContainer.classList.add("vertical");
+        if (mode === "horizontal") imagesContainer.classList.add("horizontal");
+        if (mode === "grid") {
+          imagesContainer.classList.add("grid");
+          imagesContainer.style.setProperty("--cols", imagesPerRow.value);
+        }
+      }
+
+      layoutMode.addEventListener("change", applyLayout);
+      imagesPerRow.addEventListener("change", applyLayout);
+
+      /* ===============================
+         DOWNLOAD FINAL IMAGE
+      =============================== */
+
+      downloadBtn.addEventListener("click", () => {
+        html2canvas(previewWrapper, {
+          scale: 2,
+          allowTaint: false,
+          useCORS: false,
+        }).then((canvas) => {
+          const link = document.createElement("a");
+          link.download = "image_with_footer.png";
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        });
+      });
+    </script>
+  </body>
+</html>

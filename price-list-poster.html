@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>MLBB SVG Price List Generator</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #111;
+        color: #fff;
+        padding: 20px;
+      }
+
+      textarea {
+        width: 100%;
+        height: 250px;
+        font-size: 14px;
+        padding: 10px;
+      }
+
+      input,
+      select {
+        padding: 6px;
+        font-size: 16px;
+        margin-right: 10px;
+        margin-top: 5px;
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin-top: 10px;
+        cursor: pointer;
+      }
+
+      #svgContainer {
+        margin-top: 20px;
+        background: #222;
+        padding: 20px;
+        border-radius: 8px;
+        transition: all 0.15s ease;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>MLBB Price List → SVG Generator</h2>
+
+    <p><b>Paste your JSON below:</b></p>
+    <textarea id="jsonInput">
+[
+  { "qty": "56", "sellingPrice": "₱44" },
+  { "qty": "112", "sellingPrice": "₱88" }
+]</textarea
+    >
+
+    <br /><br />
+
+    <!-- Row Limit -->
+    <label><b>Row Limit:</b></label>
+    <input type="number" id="rowLimit" value="28" min="1" />
+
+    <!-- Separate Font Sizes -->
+    <br /><br />
+    <label><b>Qty Font Size:</b></label>
+    <input type="number" id="qtyFontSize" value="18" min="10" max="50" />
+
+    <label><b>Price Font Size:</b></label>
+    <input type="number" id="priceFontSize" value="18" min="10" max="50" />
+
+    <br /><br />
+
+    <!-- Row + Column Spacing -->
+    <label><b>Row Spacing:</b></label>
+    <input type="number" id="rowSpacing" value="65" min="40" max="200" />
+
+    <label><b>Column Spacing:</b></label>
+    <input type="number" id="colSpacing" value="10" min="0" max="200" />
+
+    <br /><br />
+
+    <!-- Box Size Controls -->
+    <label><b>Qty Box Width:</b></label>
+    <input type="number" id="qtyBoxWidth" value="310" min="50" max="600" />
+
+    <label><b>Qty Box Height:</b></label>
+    <input type="number" id="qtyBoxHeight" value="60" min="20" max="200" />
+
+    <br /><br />
+
+    <label><b>Price Box Width:</b></label>
+    <input type="number" id="priceBoxWidth" value="140" min="50" max="600" />
+
+    <label><b>Price Box Height:</b></label>
+    <input type="number" id="priceBoxHeight" value="35" min="20" max="200" />
+
+    <br /><br />
+
+    <!-- Border Radius -->
+    <label><b>Qty Box Radius:</b></label>
+    <input type="number" id="qtyRadius" value="10" min="0" max="50" />
+
+    <label><b>Price Box Radius:</b></label>
+    <input type="number" id="priceRadius" value="6" min="0" max="50" />
+
+    <br /><br />
+
+    <!-- Colors -->
+    <label><b>Qty Box Color:</b></label>
+    <input type="color" id="qtyColor" value="#ABA4D0" />
+
+    <label><b>Price Box Color:</b></label>
+    <input type="color" id="priceColor" value="#FFFFFF" />
+
+    <br /><br />
+
+    <label><b>Qty Text Color:</b></label>
+    <input type="color" id="qtyTextColor" value="#FFFFFF" />
+
+    <label><b>Price Text Color:</b></label>
+    <input type="color" id="priceTextColor" value="#333333" />
+
+    <br /><br />
+
+    <!-- Font Family -->
+    <label><b>Font Family:</b></label>
+    <select id="fontFamily">
+      <option value="Arial">Arial</option>
+      <option value="Roboto" query="&display=swap">Roboto</option>
+      <option value="Titan+One" query="&display=swap">Titan One</option>
+      <option value="Luckiest+Guy" query="&display=swap">Luckiest Guy</option>
+      <option value="Story+Script" query="&display=swap">Story Script</option>
+      <option value="Condiment" query="&display=swap">Condiment</option>
+      <option value="DynaPuff" query="&display=swap">DynaPuff</option>
+      <option value="Audiowide" query="&display=swap">Audiowide</option>
+      <option value="Boogaloo" query="&display=swap">Boogaloo</option>
+    </select>
+
+    <br /><br />
+
+    <button onclick="downloadSVG()">Download SVG</button>
+    <button onclick="downloadJPG()">Download JPG</button>
+
+    <div id="svgContainer"></div>
+
+    <script>
+      const jsonInput = document.getElementById("jsonInput");
+      const rowLimitInput = document.getElementById("rowLimit");
+
+      const qtyFontSizeInput = document.getElementById("qtyFontSize");
+      const priceFontSizeInput = document.getElementById("priceFontSize");
+
+      const rowSpacingInput = document.getElementById("rowSpacing");
+      const colSpacingInput = document.getElementById("colSpacing");
+
+      const qtyBoxWidthInput = document.getElementById("qtyBoxWidth");
+      const qtyBoxHeightInput = document.getElementById("qtyBoxHeight");
+
+      const priceBoxWidthInput = document.getElementById("priceBoxWidth");
+      const priceBoxHeightInput = document.getElementById("priceBoxHeight");
+
+      const qtyRadiusInput = document.getElementById("qtyRadius");
+      const priceRadiusInput = document.getElementById("priceRadius");
+
+      const qtyColorInput = document.getElementById("qtyColor");
+      const priceColorInput = document.getElementById("priceColor");
+
+      const qtyTextColorInput = document.getElementById("qtyTextColor");
+      const priceTextColorInput = document.getElementById("priceTextColor");
+
+      const fontFamilySelect = document.getElementById("fontFamily");
+      const svgContainer = document.getElementById("svgContainer");
+
+      /* Load all Google Fonts */
+      function loadAllFontOptions() {
+        [...fontFamilySelect.options].forEach((opt) => {
+          const val = opt.value;
+          const q = opt.getAttribute("query") || "&display=swap";
+          if (val === "Arial") return;
+
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = `https://fonts.googleapis.com/css2?family=${val}${q}`;
+          document.head.appendChild(link);
+        });
+      }
+      loadAllFontOptions();
+
+      function loadGoogleFont() {
+        const opt = fontFamilySelect.options[fontFamilySelect.selectedIndex];
+        const val = opt.value;
+        if (val === "Arial") return;
+
+        const q = opt.getAttribute("query") || "&display=swap";
+        const old = document.getElementById("dynamicFontLoader");
+        if (old) old.remove();
+
+        const link = document.createElement("link");
+        link.id = "dynamicFontLoader";
+        link.rel = "stylesheet";
+        link.href = `https://fonts.googleapis.com/css2?family=${val}${q}`;
+        document.head.appendChild(link);
+      }
+
+      /* Draw Row */
+      function drawRow(
+        x,
+        y,
+        qty,
+        price,
+        qtyFS,
+        priceFS,
+        qtyR,
+        priceR,
+        qtyC,
+        priceC,
+        qtyTC,
+        priceTC,
+        fontName,
+        qtyW,
+        qtyH,
+        priceW,
+        priceH
+      ) {
+        const qtyOffset = qtyFS * 1.9;
+        const priceOffset = priceFS * 1.9;
+
+        return `
+<rect x="${x}" y="${y}" width="${qtyW}" height="${qtyH}" rx="${qtyR}" fill="${qtyC}" />
+
+<text x="${x + 25}" y="${y + qtyOffset}" 
+  fill="${qtyTC}" font-size="${qtyFS}" 
+  font-family="${fontName}" font-weight="700">
+${qty}</text>
+
+<rect 
+  x="${x + qtyW - priceW - 10}" 
+  y="${y + (qtyH - priceH) / 2}" 
+  width="${priceW}" height="${priceH}" 
+  rx="${priceR}" fill="${priceC}" 
+/>
+
+<text 
+  x="${x + qtyW - priceW / 2 - 10}" 
+  y="${y + priceOffset}" 
+  fill="${priceTC}" font-size="${priceFS}" 
+  font-family="${fontName}" 
+  font-weight="700" text-anchor="middle">
+${price}</text>
+`;
+      }
+
+      /* Generate SVG */
+      function generateSVG() {
+        let items;
+        try {
+          items = JSON.parse(jsonInput.value);
+        } catch {
+          svgContainer.innerHTML = "<p>Invalid JSON!</p>";
+          return;
+        }
+
+        const limit = parseInt(rowLimitInput.value, 10);
+        if (!isNaN(limit) && limit > 0) items = items.slice(0, limit);
+
+        const qtyFS = parseInt(qtyFontSizeInput.value, 10);
+        const priceFS = parseInt(priceFontSizeInput.value, 10);
+
+        const qtyR = parseInt(qtyRadiusInput.value, 10);
+        const priceR = parseInt(priceRadiusInput.value, 10);
+
+        const qtyC = qtyColorInput.value;
+        const priceC = priceColorInput.value;
+        const qtyTC = qtyTextColorInput.value;
+        const priceTC = priceTextColorInput.value;
+
+        const fontName = fontFamilySelect.value.replace(/\+/g, " ");
+
+        const rowSpacingValue = parseInt(rowSpacingInput.value, 10);
+        const colSpacingValue = parseInt(colSpacingInput.value, 10);
+
+        const qtyW = parseInt(qtyBoxWidthInput.value, 10);
+        const qtyH = parseInt(qtyBoxHeightInput.value, 10);
+
+        const priceW = parseInt(priceBoxWidthInput.value, 10);
+        const priceH = parseInt(priceBoxHeightInput.value, 10);
+
+        const leftCount = Math.ceil(items.length / 2);
+
+        const svgW = qtyW * 2 + colSpacingValue;
+        const svgH = leftCount * rowSpacingValue;
+
+        let svg = `
+<svg 
+  width="${svgW}" 
+  height="${svgH}" 
+  viewBox="0 0 ${svgW} ${svgH}" 
+  xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Background / Bounding Box -->
+  <rect x="0" y="0" width="${svgW}" height="${svgH}" fill="transparent"/>
+`;
+
+        items.slice(0, leftCount).forEach((item, i) => {
+          svg += drawRow(
+            0,
+            i * rowSpacingValue,
+            item.qty,
+            item.sellingPrice,
+            qtyFS,
+            priceFS,
+            qtyR,
+            priceR,
+            qtyC,
+            priceC,
+            qtyTC,
+            priceTC,
+            fontName,
+            qtyW,
+            qtyH,
+            priceW,
+            priceH
+          );
+        });
+
+        items.slice(leftCount).forEach((item, i) => {
+          svg += drawRow(
+            qtyW + colSpacingValue,
+            i * rowSpacingValue,
+            item.qty,
+            item.sellingPrice,
+            qtyFS,
+            priceFS,
+            qtyR,
+            priceR,
+            qtyC,
+            priceC,
+            qtyTC,
+            priceTC,
+            fontName,
+            qtyW,
+            qtyH,
+            priceW,
+            priceH
+          );
+        });
+
+        svgContainer.innerHTML = svg + "</svg>";
+      }
+
+      /* Download SVG */
+      function downloadSVG() {
+        const svg = document.querySelector("#svgContainer svg");
+        if (!svg) return alert("Generate SVG first!");
+
+        const blob = new Blob([svg.outerHTML], { type: "image/svg+xml" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "price-list.svg";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      /* Download JPG */
+      function downloadJPG() {
+        const svgElement = document.querySelector("#svgContainer svg");
+        if (!svgElement) return alert("Generate SVG first!");
+
+        const svgData = new XMLSerializer().serializeToString(svgElement);
+        const svgBlob = new Blob([svgData], {
+          type: "image/svg+xml;charset=utf-8",
+        });
+        const url = URL.createObjectURL(svgBlob);
+
+        const img = new Image();
+        img.onload = function () {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          URL.revokeObjectURL(url);
+
+          canvas.toBlob(
+            function (blob) {
+              const link = document.createElement("a");
+              link.href = URL.createObjectURL(blob);
+              link.download = "price-list.jpg";
+              link.click();
+            },
+            "image/jpeg",
+            0.95
+          );
+        };
+        img.onerror = function () {
+          alert("Error rendering SVG to image. Try again.");
+        };
+        img.src = url;
+      }
+
+      /* Live Updates */
+      [
+        jsonInput,
+        rowLimitInput,
+        qtyFontSizeInput,
+        priceFontSizeInput,
+        rowSpacingInput,
+        colSpacingInput,
+        qtyRadiusInput,
+        priceRadiusInput,
+        qtyColorInput,
+        priceColorInput,
+        qtyTextColorInput,
+        priceTextColorInput,
+        qtyBoxWidthInput,
+        qtyBoxHeightInput,
+        priceBoxWidthInput,
+        priceBoxHeightInput,
+      ].forEach((el) => el.addEventListener("input", generateSVG));
+
+      fontFamilySelect.addEventListener("change", () => {
+        loadGoogleFont();
+        generateSVG();
+      });
+
+      // Initial render
+      generateSVG();
+    </script>
+  </body>
+</html>

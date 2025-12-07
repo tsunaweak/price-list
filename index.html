@@ -1,27 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>MLBB Price Table With Script Display</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>MLBB Price Table With Script Display</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-<style>
-    body {
+    <style>
+      body {
         font-family: Arial, sans-serif;
         padding: 20px;
         background: #fafafa;
         display: flex;
         gap: 20px;
-    }
+      }
 
-    /* LEFT SIDE: form + table */
-    .left {
+      /* LEFT SIDE */
+      .left {
         flex: 1;
-    }
+      }
 
-    /* RIGHT SIDE: code block */
-    .right {
+      .right {
         width: 420px;
         background: #1e1e1e;
         color: #dcdcdc;
@@ -32,14 +31,14 @@
         max-height: 95vh;
         position: sticky;
         top: 20px;
-    }
+      }
 
-    pre {
+      pre {
         white-space: pre-wrap;
         word-break: break-word;
-    }
+      }
 
-    #copyBtn {
+      #copyBtn {
         background: #3a86ff;
         color: white;
         border: none;
@@ -47,22 +46,23 @@
         cursor: pointer;
         border-radius: 4px;
         margin-bottom: 10px;
-    }
+      }
 
-    #copyBtn:hover {
+      #copyBtn:hover {
         background: #1d5ed8;
-    }
+      }
 
-    textarea {
+      textarea {
         width: 80%;
         height: 240px;
         padding: 10px;
         border-radius: 5px;
         border: 1px solid #ccc;
         font-family: monospace;
-    }
+      }
 
-    #generateBtn, #downloadBtn {
+      #generateBtn,
+      #downloadBtn {
         margin: 10px 5px 20px 0;
         padding: 10px 15px;
         background: #007bff;
@@ -71,64 +71,69 @@
         cursor: pointer;
         border-radius: 5px;
         font-size: 14px;
-    }
+      }
 
-    #generateBtn:hover, #downloadBtn:hover {
+      #generateBtn:hover,
+      #downloadBtn:hover {
         background: #0056b3;
-    }
+      }
 
-    table {
+      table {
         border-collapse: collapse;
         font-size: 14px;
         background: white;
         margin-top: 20px;
-    }
+      }
 
-    thead tr {
+      thead tr {
         background: #f5e8c8;
         font-weight: bold;
-    }
+      }
 
-    th, td {
+      th,
+      td {
         border: 1px solid #ddd;
         padding: 8px 10px;
         text-align: center;
-    }
+      }
 
-    tbody tr:nth-child(even) { background: #fdfdfd; }
-    tbody tr:nth-child(odd) { background: #ffffff; }
+      tbody tr:nth-child(even) {
+        background: #fdfdfd;
+      }
+      tbody tr:nth-child(odd) {
+        background: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- LEFT SIDE -->
+    <div class="left">
+      <h2>MLBB Price List Table Generator</h2>
 
-</style>
-</head>
-<body>
+      <textarea id="dataInput">// Paste your JSON here</textarea>
 
-<!-- LEFT SIDE -->
-<div class="left">
+      <br />
+      <button id="generateBtn">Generate Table</button>
+      <button id="downloadBtn">Download Table as Image</button>
 
-    <h2>MLBB Price List Table Generator</h2>
-
-    <textarea id="dataInput">// Paste your JSON here</textarea>
-
-    <br>
-    <button id="generateBtn">Generate Table</button>
-    <button id="downloadBtn">Download Table as Image</button>
-
-    <table id="priceTable">
+      <table id="priceTable">
         <thead>
-            <tr>
-                <th>ITEM</th>
-                <th>PRICE</th>
-            </tr>
+          <tr>
+            <th>ITEM</th>
+            <th>ORIGINAL PRICE</th>
+            <th>SELLING PRICE</th>
+            <th>MARGIN</th>
+          </tr>
         </thead>
         <tbody></tbody>
-    </table>
-</div>
+      </table>
+    </div>
 
-<!-- RIGHT SIDE: SCRIPT PANEL -->
-<div class="right">
-    <button id="copyBtn">Copy Script</button>
+    <!-- RIGHT SIDE -->
+    <div class="right">
+      <button id="copyBtn">Copy Script</button>
 
-    <pre id="scriptCode">
+      <pre id="scriptCode">
 function parsePrice(p) {
     return Number(p.replace(/[₱,]/g, "").trim());
 }
@@ -145,12 +150,13 @@ document.querySelectorAll(".col-sm-4.col-6.d-flex").forEach(item => {
     const priceRaw = priceEl.textContent.trim();
 
     const price = parsePrice(priceRaw);
-    const pricePlus3 = Math.round(price * 1.03);
+    const sellingPrice = Math.round(price * 1.02);
 
     if (price > 40) {
         productsMap.set(name, {
             name,
-            price: `₱${pricePlus3.toLocaleString("en-PH")}`
+            originalPrice: price,
+            sellingPrice: sellingPrice,
         });
     }
 });
@@ -158,70 +164,107 @@ document.querySelectorAll(".col-sm-4.col-6.d-flex").forEach(item => {
 const products = Array.from(productsMap.values());
 
 console.log(JSON.stringify(products));
-    </pre>
-</div>
+      </pre>
+    </div>
 
-<script>
-let replace = {
-    "301 Diamonds ( 274 + 27  )": "Normal Starlight (301 Diamonds)",
-    "749 Diamonds ( 667 + 82  )": "Starlight Plus (749 Diamonds)"
-};
+    <script>
+      let replace = {
+        "301 Diamonds ( 274 + 27  )": "Normal Starlight (301 Diamonds)",
+        "749 Diamonds ( 667 + 82  )": "Starlight Plus (749 Diamonds)",
+      };
 
-let skip = [
-    "Weekly Diamond Pass x2",
-    "Weekly Diamond Pass x3",
-    "Weekly Diamond Pass x4",
-    "Weekly Diamond Pass x5"
-];
+      let skip = [
+        "Weekly Diamond Pass x2",
+        "Weekly Diamond Pass x3",
+        "Weekly Diamond Pass x4",
+        "Weekly Diamond Pass x5",
+      ];
 
-function generateTable() {
-    let tbody = document.querySelector("#priceTable tbody");
-    tbody.innerHTML = "";
+      function generateTable() {
+        let tbody = document.querySelector("#priceTable tbody");
+        tbody.innerHTML = "";
 
-    let input = document.getElementById("dataInput").value;
+        let input = document.getElementById("dataInput").value;
 
-    try {
-        let data = JSON.parse(input);
+        try {
+          let data = JSON.parse(input);
 
-        data.forEach(item => {
+          data.forEach((item) => {
             if (skip.includes(item.name)) return;
 
             let tr = document.createElement("tr");
             tr.innerHTML = `
                 <td><strong>${replace[item.name] ?? item.name}</strong></td>
-                <td><strong>${item.price}</strong></td>
+                <td><strong>${item.originalPrice}</strong></td>
+                <td><strong>₱${item.sellingPrice.toLocaleString(
+                  "en-PH"
+                )}</strong></td>
+                <td><strong>${(
+                  item.sellingPrice - item.originalPrice
+                ).toLocaleString("en-PH")}</strong></td>
             `;
             tbody.appendChild(tr);
+          });
+        } catch (e) {
+          alert("❌ Invalid JSON! Please check your formatting.");
+        }
+      }
+
+      document
+        .getElementById("generateBtn")
+        .addEventListener("click", generateTable);
+
+      document.getElementById("copyBtn").addEventListener("click", () => {
+        const text = document.getElementById("scriptCode").innerText;
+        navigator.clipboard.writeText(text);
+        alert("Script copied!");
+      });
+
+      /* -------------------------
+        DOWNLOAD TABLE (MODIFIED)
+      -------------------------- */
+      document.getElementById("downloadBtn").addEventListener("click", () => {
+        const table = document.getElementById("priceTable");
+
+        // Clone table
+        let clone = table.cloneNode(true);
+
+        // Remove ORIGINAL PRICE (index 1) and MARGIN (index 3)
+        clone.querySelectorAll("tr").forEach((row) => {
+          row.removeChild(row.children[3]); // margin
+          row.removeChild(row.children[1]); // original price
         });
 
-    } catch (e) {
-        alert("❌ Invalid JSON! Please check your formatting.");
-    }
-}
+        // Change SELLING PRICE → PRICE
+        clone.querySelector("thead tr th:nth-child(2)").innerText = "PRICE";
 
-document.getElementById("generateBtn").addEventListener("click", generateTable);
+        // Create hidden render container
+        let hidden = document.createElement("div");
+        hidden.style.position = "absolute";
+        hidden.style.left = "-9999px"; // hide from screen
+        hidden.appendChild(clone);
+        document.body.appendChild(hidden);
 
-// AUTO-COPY SCRIPT BUTTON
-document.getElementById("copyBtn").addEventListener("click", () => {
-    const text = document.getElementById("scriptCode").innerText;
-    navigator.clipboard.writeText(text);
-    alert("Script copied!");
-});
+        const now = new Date();
+        const mm = String(now.getMonth() + 1).padStart(2, "0");
+        const dd = String(now.getDate()).padStart(2, "0");
+        const yyyy = now.getFullYear();
+        const formattedDate = `${mm}-${dd}-${yyyy}`;
 
-// DOWNLOAD TABLE IMAGE
-document.getElementById("downloadBtn").addEventListener("click", () => {
-    const table = document.getElementById("priceTable");
-    html2canvas(table, { scale: 3 }).then(canvas => {
-        const link = document.createElement("a");
-        link.download = "MLBB_Price_List.png";
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-    });
-});
+        // Render cloned table
+        html2canvas(clone, { scale: 3 })
+          .then((canvas) => {
+            const link = document.createElement("a");
+            link.download = `MLBB_Price_List_${formattedDate}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+          })
+          .finally(() => {
+            hidden.remove(); // cleanup
+          });
+      });
 
-// Auto-generate a blank table
-generateTable();
-</script>
-
-</body>
+      generateTable();
+    </script>
+  </body>
 </html>
