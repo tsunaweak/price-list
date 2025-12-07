@@ -135,18 +135,37 @@
 
       <pre id="scriptCode">
 function parsePrice(p) {
-    return Number(p.replace(/[₱,]/g, "").trim());
+  return Number(p.replace(/[₱,]/g, "").trim());
 }
+
+const replace = {
+  "301 Diamonds ( 274 + 27  )": "Normal Starlight (301 Diamonds)",
+  "749 Diamonds ( 667 + 82  )": "Starlight Plus (749 Diamonds)",
+};
+
+const skip = [
+  "Weekly Diamond Pass x2",
+  "Weekly Diamond Pass x3",
+  "Weekly Diamond Pass x4",
+  "Weekly Diamond Pass x5",
+];
 
 const productsMap = new Map();
 
-document.querySelectorAll(".col-sm-4.col-6.d-flex").forEach(item => {
+document
+  .querySelectorAll(".row-category .col-sm-4.col-6.d-flex")
+  .forEach((item) => {
     const nameEl = item.querySelector(".product-name");
     const priceEl = item.querySelector(".currency-idr1");
 
     if (!nameEl || !priceEl) return;
 
-    const name = nameEl.textContent.trim();
+    let name = nameEl.textContent.trim();
+
+    if (skip.includes(name)) return;
+
+    name = replace[name] ?? name;
+
     const priceRaw = priceEl.textContent.trim();
 
     const price = parsePrice(priceRaw);
@@ -159,7 +178,7 @@ document.querySelectorAll(".col-sm-4.col-6.d-flex").forEach(item => {
             sellingPrice: sellingPrice,
         });
     }
-});
+  });
 
 const products = Array.from(productsMap.values());
 
