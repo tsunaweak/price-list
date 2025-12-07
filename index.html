@@ -171,12 +171,16 @@ document
     const price = parsePrice(priceRaw);
     const sellingPrice = Math.round(price * 1.02);
 
+    const cleaned = name.replace(/Diamonds\s*\([^)]*\)/, "").trim();
+
     if (price > 40) {
-        productsMap.set(name, {
-            name,
-            originalPrice: price,
-            sellingPrice: sellingPrice,
-        });
+      productsMap.set(name, {
+        name,
+        qty: cleaned,
+        price: `₱${sellingPrice.toLocaleString("en-PH")}`,
+        originalPrice: price,
+        sellingPrice: sellingPrice,
+      });
     }
   });
 
