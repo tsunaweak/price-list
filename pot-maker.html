@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Proof of Transaction Generator</title>
+
+<style>
+body { background:#111; color:#fff; font-family:Arial; padding:20px }
+.toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center }
+canvas { background:#fff; cursor:crosshair }
+.preview { border:2px dashed #555; padding:10px; max-height:80vh; overflow:auto; position:relative }
+.indicator {
+  position:absolute;
+  border:2px dashed red;
+  background:rgba(255,0,0,.15);
+  pointer-events:none;
+  display:none;
+}
+</style>
+</head>
+<body>
+
+<h2>Proof of Transaction Generator</h2>
+
+<div class="toolbar">
+  <label>Width</label>
+  <input id="width" type="number" value="1080">
+
+  <label>Tool</label>
+  <select id="tool">
+    <option value="hide" selected>Hide</option> <!-- ✅ DEFAULT -->
+    <option value="blur">Blur</option>
+    <option value="none">None</option>
+  </select>
+
+  <label>Blur</label>
+  <input id="blurSize" type="range" min="5" max="50" value="20">
+
+  <label>Watermark</label>
+  <select id="wmMode">
+    <option value="repeat" selected>Repeat Diagonal</option>
+    <option value="none">None</option>
+  </select>
+
+  <label>Opacity</label>
+  <input id="wmOpacity" type="range" min="5" max="40" value="15">
+
+  <input id="files" type="file" multiple accept="image/*">
+
+  <button id="generateBtn">Generate</button>
+  <button id="undoBtn" type="button">Undo</button>
+  <button id="redoBtn" type="button">Redo</button>
+  <button id="downloadBtn">Download</button>
+</div>
+
+<div class="preview" id="preview">
+  <canvas id="canvas"></canvas>
+  <div class="indicator" id="indicator"></div>
+</div>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const indicator = document.getElementById("indicator");
+
+let images = [];
+let blocks = [];
+let edits = [];
+
+let drawing = false;
+let startX = 0, startY = 0;
+
+/* Undo/Redo history */
+let history = [];
+let redoStack = [];
+
+function pushHistory() {
+  history.push(canvas.toDataURL("image/png"));
+  redoStack = [];
+}
+
+function restoreFromDataUrl(dataUrl) {
+  const img = new Image();
+  img.onload = () => {
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+  };
+  img.src = dataUrl;
+}
+
+undoBtn.onclick = () => {
+  if (history.length <= 1) return;
+  redoStack.push(history.pop());
+  restoreFromDataUrl(history[history.length - 1]);
+};
+
+redoBtn.onclick = () => {
+  if (!redoStack.length) return;
+  const state = redoStack.pop();
+  history.push(state);
+  restoreFromDataUrl(state);
+};
+
+document.addEventListener("keydown", e => {
+  if (!e.ctrlKey) return;
+  if (e.key.toLowerCase() === "z") { e.preventDefault(); undoBtn.click(); }
+  if (e.key.toLowerCase() === "y") { e.preventDefault(); redoBtn.click(); }
+});
+
+/* Load screenshots */
+files.onchange = async e => {
+  images = [];
+  for (const f of e.target.files) {
+    const img = new Image();
+    img.src = URL.createObjectURL(f);
+    await new Promise(r => img.onload = r);
+    images.push(img);
+  }
+};
+
+/* Generate canvas */
+generateBtn.onclick = () => {
+  if (!images.length) return alert("Upload screenshots first");
+
+  const W = Number(width.value);
+  let H = 0;
+
+  blocks = [];
+  edits = [];
+
+  images.forEach(img => {
+    const h = img.height * (W / img.width);
+    blocks.push({ img, y: H, h });
+    H += h;
+  });
+
+  canvas.width = W;
+  canvas.height = H;
+
+  redraw();
+
+  history = [];
+  redoStack = [];
+  pushHistory();
+};
+
+/* Redraw everything */
+function redraw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  blocks.forEach(b => {
+    ctx.drawImage(b.img, 0, b.y, canvas.width, b.h);
+  });
+
+  edits.forEach(e => {
+    if (e.type === "hide") {
+      ctx.fillStyle = "#000";
+      ctx.fillRect(e.x, e.y, e.w, e.h);
+    }
+    if (e.type === "blur") applyBlur(e);
+  });
+
+  blocks.forEach(b => applyWatermark(b));
+}
+
+/* Mouse events */
+canvas.onmousedown = e => {
+  if (tool.value === "none") return;
+
+  drawing = true;
+  const rect = canvas.getBoundingClientRect();
+  startX = e.clientX - rect.left;
+  startY = e.clientY - rect.top;
+
+  if (tool.value === "hide") {
+    indicator.style.display = "block";
+    indicator.style.left = startX + "px";
+    indicator.style.top = startY + "px";
+    indicator.style.width = "0px";
+    indicator.style.height = "0px";
+  }
+};
+
+canvas.onmousemove = e => {
+  if (!drawing || tool.value !== "hide") return;
+
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  indicator.style.left = Math.min(startX, x) + "px";
+  indicator.style.top = Math.min(startY, y) + "px";
+  indicator.style.width = Math.abs(x - startX) + "px";
+  indicator.style.height = Math.abs(y - startY) + "px";
+};
+
+canvas.onmouseup = e => {
+  if (!drawing) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const endX = e.clientX - rect.left;
+  const endY = e.clientY - rect.top;
+
+  const x = Math.min(startX, endX);
+  const y = Math.min(startY, endY);
+  const w = Math.abs(endX - startX);
+  const h = Math.abs(endY - startY);
+
+  indicator.style.display = "none";
+  drawing = false;
+
+  if (w <= 2 || h <= 2) return;
+
+  edits.push({ type: tool.value, x, y, w, h });
+  redraw();
+  pushHistory();
+};
+
+/* Blur helper */
+function applyBlur(e) {
+  const temp = document.createElement("canvas");
+  temp.width = e.w;
+  temp.height = e.h;
+
+  const tctx = temp.getContext("2d");
+  tctx.drawImage(canvas, e.x, e.y, e.w, e.h, 0, 0, e.w, e.h);
+  tctx.filter = `blur(${blurSize.value}px)`;
+  tctx.drawImage(temp, 0, 0);
+
+  ctx.drawImage(temp, e.x, e.y);
+}
+
+/* Repeat diagonal watermark */
+function applyWatermark(b) {
+  if (wmMode.value !== "repeat") return;
+
+  ctx.save();
+  ctx.globalAlpha = wmOpacity.value / 100;
+
+  ctx.save();
+  ctx.translate(canvas.width / 2, b.y + b.h / 2);
+  ctx.rotate(-Math.PI / 4);
+
+  ctx.font = "bold 32px Arial";
+  ctx.fillStyle = "#000";
+
+  for (let y = -b.h; y < b.h; y += 120) {
+    for (let x = -canvas.width; x < canvas.width; x += 400) {
+      ctx.fillText("Noir’s Discount Store", x, y);
+    }
+  }
+
+  ctx.restore();
+  ctx.restore();
+}
+
+/* Download */
+downloadBtn.onclick = () => {
+  if (!canvas.width || !canvas.height) return alert("Generate image first");
+  const a = document.createElement("a");
+  a.download = "proof-of-transaction.png";
+  a.href = canvas.toDataURL("image/png");
+  a.click();
+};
+</script>
+
+</body>
+</html>

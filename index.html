@@ -15,7 +15,6 @@
         gap: 20px;
       }
 
-      /* LEFT SIDE */
       .left {
         flex: 1;
       }
@@ -62,7 +61,8 @@
       }
 
       #generateBtn,
-      #downloadBtn {
+      #downloadBtn,
+      #exportCsvBtn {
         margin: 10px 5px 20px 0;
         padding: 10px 15px;
         background: #007bff;
@@ -74,7 +74,8 @@
       }
 
       #generateBtn:hover,
-      #downloadBtn:hover {
+      #downloadBtn:hover,
+      #exportCsvBtn:hover {
         background: #0056b3;
       }
 
@@ -106,7 +107,6 @@
     </style>
   </head>
   <body>
-    <!-- LEFT SIDE -->
     <div class="left">
       <h2>MLBB Price List Table Generator</h2>
 
@@ -115,6 +115,7 @@
       <br />
       <button id="generateBtn">Generate Table</button>
       <button id="downloadBtn">Download Table as Image</button>
+      <button id="exportCsvBtn">Export CSV</button>
 
       <table id="priceTable">
         <thead>
@@ -129,7 +130,6 @@
       </table>
     </div>
 
-    <!-- RIGHT SIDE -->
     <div class="right">
       <button id="copyBtn">Copy Script</button>
 
@@ -244,27 +244,68 @@ console.log(JSON.stringify(products));
       });
 
       /* -------------------------
-        DOWNLOAD TABLE (MODIFIED)
+          EXPORT CSV FUNCTION
+      -------------------------- */
+      function exportCSV() {
+        let input = document.getElementById("dataInput").value;
+
+        let csvRows = [];
+        csvRows.push(["ITEM", "ORIGINAL PRICE", "SELLING PRICE", "MARGIN"].join(","));
+
+        try {
+          let data = JSON.parse(input);
+
+          data.forEach((item) => {
+            if (skip.includes(item.name)) return;
+
+            const name = replace[item.name] ?? item.name;
+            const original = item.originalPrice;
+            const selling = item.sellingPrice;
+            const margin = selling - original;
+
+            csvRows.push([name, original, selling, margin].join(","));
+          });
+
+          let csvContent = csvRows.join("\n");
+          let blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+
+          const now = new Date();
+          const mm = String(now.getMonth() + 1).padStart(2, "0");
+          const dd = String(now.getDate()).padStart(2, "0");
+          const yyyy = now.getFullYear();
+          const formattedDate = `${mm}-${dd}-${yyyy}`;
+
+          let link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = `MLBB_Price_List_${formattedDate}.csv`;
+          link.click();
+        } catch (e) {
+          alert("❌ Invalid JSON! Cannot export CSV.");
+        }
+      }
+
+      document
+        .getElementById("exportCsvBtn")
+        .addEventListener("click", exportCSV);
+
+      /* -------------------------
+          DOWNLOAD TABLE AS IMAGE
       -------------------------- */
       document.getElementById("downloadBtn").addEventListener("click", () => {
         const table = document.getElementById("priceTable");
 
-        // Clone table
         let clone = table.cloneNode(true);
 
-        // Remove ORIGINAL PRICE (index 1) and MARGIN (index 3)
         clone.querySelectorAll("tr").forEach((row) => {
-          row.removeChild(row.children[3]); // margin
-          row.removeChild(row.children[1]); // original price
+          row.removeChild(row.children[3]); 
+          row.removeChild(row.children[1]);
         });
 
-        // Change SELLING PRICE → PRICE
         clone.querySelector("thead tr th:nth-child(2)").innerText = "PRICE";
 
-        // Create hidden render container
         let hidden = document.createElement("div");
         hidden.style.position = "absolute";
-        hidden.style.left = "-9999px"; // hide from screen
+        hidden.style.left = "-9999px";
         hidden.appendChild(clone);
         document.body.appendChild(hidden);
 
@@ -274,7 +315,6 @@ console.log(JSON.stringify(products));
         const yyyy = now.getFullYear();
         const formattedDate = `${mm}-${dd}-${yyyy}`;
 
-        // Render cloned table
         html2canvas(clone, { scale: 3 })
           .then((canvas) => {
             const link = document.createElement("a");
@@ -283,7 +323,7 @@ console.log(JSON.stringify(products));
             link.click();
           })
           .finally(() => {
-            hidden.remove(); // cleanup
+            hidden.remove();
           });
       });
 
