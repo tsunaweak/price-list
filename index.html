@@ -153,7 +153,9 @@ const skip = [
 const productsMap = new Map();
 
 document
-  .querySelectorAll(".row-category .col-sm-4.col-6.d-flex")
+  .querySelectorAll(
+    ".row .col-sm-4.col-6.d-flex, .row-category .col-sm-4.col-6.d-flex"
+  )
   .forEach((item) => {
     const nameEl = item.querySelector(".product-name");
     const priceEl = item.querySelector(".currency-idr1");
@@ -167,7 +169,6 @@ document
     name = replace[name] ?? name;
 
     const priceRaw = priceEl.textContent.trim();
-
     const price = parsePrice(priceRaw);
     const sellingPrice = Math.round(price * 1.02);
 
@@ -187,6 +188,7 @@ document
 const products = Array.from(productsMap.values());
 
 console.log(JSON.stringify(products));
+;
       </pre>
     </div>
 
