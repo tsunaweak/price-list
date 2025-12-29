@@ -15,9 +15,11 @@
         --shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
         --radius: 14px;
       }
+
       * {
         box-sizing: border-box;
       }
+
       body {
         margin: 0;
         font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
@@ -30,6 +32,7 @@
           var(--bg);
         color: var(--text);
       }
+
       header {
         position: sticky;
         top: 0;
@@ -38,8 +41,9 @@
         backdrop-filter: blur(10px);
         border-bottom: 1px solid var(--border);
       }
+
       .headerInner {
-        max-width: 1400px;
+        max-width: 1300px;
         margin: 0 auto;
         padding: 14px 18px;
         display: flex;
@@ -47,27 +51,32 @@
         justify-content: space-between;
         gap: 12px;
       }
+
       .title {
         display: flex;
         flex-direction: column;
         gap: 2px;
       }
+
       .title h1 {
         font-size: 16px;
         margin: 0;
         letter-spacing: 0.2px;
       }
+
       .title p {
         margin: 0;
         color: var(--muted);
         font-size: 12px;
       }
+
       .actions {
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
         justify-content: flex-end;
       }
+
       button {
         padding: 10px 14px;
         border: 1px solid var(--border);
@@ -82,29 +91,34 @@
         font-size: 14px;
         transition: transform 0.08s ease, border-color 0.15s ease;
       }
+
       button:hover {
         transform: translateY(-1px);
         border-color: rgba(255, 255, 255, 0.16);
       }
+
       button:active {
         transform: translateY(0px);
       }
+
       .layout {
-        max-width: 1400px;
+        max-width: 1300px;
         margin: 0 auto;
         padding: 16px 18px 24px;
         display: grid;
-        grid-template-columns: 560px 1fr;
+        grid-template-columns: 460px 1fr;
         gap: 16px;
         min-height: calc(100vh - 64px);
       }
+
       @media (max-width: 1024px) {
         .layout {
           grid-template-columns: 1fr;
         }
       }
-      .panel,
-      .preview {
+
+      /* Left settings panel */
+      .panel {
         background: linear-gradient(180deg, var(--panel), var(--panel2));
         border: 1px solid var(--border);
         border-radius: var(--radius);
@@ -114,28 +128,31 @@
         flex-direction: column;
         min-height: 0;
       }
-      .panelHeader,
-      .previewHeader {
+
+      .panelHeader {
         padding: 12px 14px;
         border-bottom: 1px solid var(--border);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
+        gap: 10px;
       }
-      .panelHeader strong,
-      .previewHeader strong {
+
+      .panelHeader strong {
         font-size: 13px;
         letter-spacing: 0.2px;
       }
+
       .panelHeader span {
         color: var(--muted);
         font-size: 12px;
       }
+
       .panelBody {
         padding: 12px;
         overflow: auto;
       }
+
       details {
         border: 1px solid var(--border);
         border-radius: 12px;
@@ -143,9 +160,11 @@
         background: rgba(255, 255, 255, 0.03);
         margin-bottom: 10px;
       }
+
       details[open] {
         background: rgba(255, 255, 255, 0.04);
       }
+
       summary {
         cursor: pointer;
         font-weight: 800;
@@ -158,33 +177,40 @@
         gap: 10px;
         user-select: none;
       }
+
       summary::-webkit-details-marker {
         display: none;
       }
+
       .summaryRight {
         color: var(--muted);
         font-weight: 600;
         font-size: 12px;
       }
+
       .grid {
         margin-top: 10px;
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 10px;
       }
+
       .grid.three {
         grid-template-columns: 1fr 1fr 1fr;
       }
+
       .field {
         display: flex;
         flex-direction: column;
         gap: 6px;
       }
+
       label {
         font-size: 12px;
         color: var(--muted);
         font-weight: 700;
       }
+
       input,
       select,
       textarea {
@@ -197,12 +223,14 @@
         font-size: 14px;
         outline: none;
       }
+
       input:focus,
       select:focus,
       textarea:focus {
         border-color: rgba(178, 136, 49, 0.5);
         box-shadow: 0 0 0 3px rgba(178, 136, 49, 0.12);
       }
+
       textarea {
         height: 190px;
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
@@ -210,12 +238,14 @@
         font-size: 12.5px;
         resize: vertical;
       }
+
       .hint {
         margin-top: 8px;
         color: var(--muted);
         font-size: 12px;
         line-height: 1.45;
       }
+
       .pill {
         display: inline-flex;
         align-items: center;
@@ -227,11 +257,46 @@
         color: var(--muted);
         font-size: 12px;
       }
+
+      /* Right preview panel */
+      .preview {
+        background: linear-gradient(180deg, var(--panel), var(--panel2));
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .previewHeader {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .previewHeader strong {
+        font-size: 13px;
+        letter-spacing: 0.2px;
+      }
+
+      .previewHeader .meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
       #svgContainer {
         padding: 14px;
         overflow: auto;
         height: 100%;
       }
+
       .error {
         padding: 10px 12px;
         border: 1px solid rgba(255, 70, 70, 0.3);
@@ -240,6 +305,7 @@
         border-radius: 12px;
         font-size: 13px;
       }
+
       .footerNote {
         padding: 10px 14px;
         border-top: 1px solid var(--border);
@@ -254,7 +320,7 @@
       <div class="headerInner">
         <div class="title">
           <h1>Game Price List → SVG Generator</h1>
-          <p>Settings left • Preview right • Live updates</p>
+          <p>Settings left • Preview right • No more scrolling</p>
         </div>
 
         <div class="actions">
@@ -278,7 +344,8 @@
         <div class="panelBody">
           <details open>
             <summary>
-              Template & Layout <span class="summaryRight">Basics</span>
+              Template & Layout
+              <span class="summaryRight">Basics</span>
             </summary>
 
             <div class="grid">
@@ -292,11 +359,10 @@
               </div>
 
               <div class="field">
-                <label>Layout</label>
+                <label>Columns</label>
                 <select id="layoutMode">
                   <option value="two" selected>Two Columns</option>
                   <option value="one">One Column</option>
-                  <option value="tiered">Tiered (Featured + List)</option>
                 </select>
               </div>
 
@@ -306,7 +372,7 @@
               </div>
 
               <div class="field">
-                <label>One Column Divider X (%)</label>
+                <label>Single Column Divider X (%)</label>
                 <input
                   type="number"
                   id="singleDivPct"
@@ -318,125 +384,33 @@
             </div>
 
             <div class="hint">
-              Tiered layout: first JSON item becomes the <b>featured</b> pill
-              (centered, same size). Remaining items show below as a 2-column
-              list.
+              Templates set sensible defaults. You can still choose One Column
+              or Two Columns anytime.
             </div>
           </details>
 
           <details open>
-            <summary>Data <span class="summaryRight">JSON</span></summary>
+            <summary>
+              Data
+              <span class="summaryRight">JSON</span>
+            </summary>
+
             <div class="field">
               <label>Paste JSON</label>
               <textarea id="jsonInput"></textarea>
             </div>
-          </details>
-
-          <details>
-            <summary>
-              Tiered Layout <span class="summaryRight">Featured</span>
-            </summary>
-
-            <div class="grid">
-              <div class="field">
-                <label>Featured Divider X (%)</label>
-                <input
-                  type="number"
-                  id="featuredDivPct"
-                  value="63"
-                  min="0"
-                  max="100"
-                />
-              </div>
-              <div class="field">
-                <label>(info)</label>
-                <div class="hint" style="margin-top: 0">
-                  Featured pill is centered and uses normal pill size.
-                </div>
-              </div>
-            </div>
 
             <div class="hint">
-              ✅ Featured pill has its own text-position settings below.
+              Format: <code>[{"qty":"..","sellingPrice":".."}, ...]</code>
             </div>
           </details>
 
           <details>
             <summary>
-              Featured Text Position <span class="summaryRight">Tiered</span>
+              Spacing & Size
+              <span class="summaryRight">Layout</span>
             </summary>
 
-            <div class="grid three">
-              <div class="field">
-                <label>Featured Qty X</label>
-                <input
-                  type="number"
-                  id="fQtyOffsetX"
-                  value="0"
-                  min="-500"
-                  max="500"
-                />
-              </div>
-              <div class="field">
-                <label>Featured Qty Y</label>
-                <input
-                  type="number"
-                  id="fQtyOffsetY"
-                  value="0"
-                  min="-200"
-                  max="200"
-                />
-              </div>
-              <div class="field">
-                <label>Featured Qty Anchor</label>
-                <select id="fQtyAnchor">
-                  <option value="auto" selected>Auto</option>
-                  <option value="start">start</option>
-                  <option value="middle">middle</option>
-                  <option value="end">end</option>
-                </select>
-              </div>
-
-              <div class="field">
-                <label>Featured Price X</label>
-                <input
-                  type="number"
-                  id="fPriceOffsetX"
-                  value="0"
-                  min="-500"
-                  max="500"
-                />
-              </div>
-              <div class="field">
-                <label>Featured Price Y</label>
-                <input
-                  type="number"
-                  id="fPriceOffsetY"
-                  value="0"
-                  min="-200"
-                  max="200"
-                />
-              </div>
-              <div class="field">
-                <label>Featured Price Anchor</label>
-                <select id="fPriceAnchor">
-                  <option value="auto" selected>Auto</option>
-                  <option value="start">start</option>
-                  <option value="middle">middle</option>
-                  <option value="end">end</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="hint">
-              These settings affect ONLY the top featured pill in Tiered mode.
-            </div>
-          </details>
-
-          <details>
-            <summary>
-              Spacing & Size <span class="summaryRight">Layout</span>
-            </summary>
             <div class="grid">
               <div class="field">
                 <label>Row Spacing</label>
@@ -498,7 +472,11 @@
           </details>
 
           <details>
-            <summary>Divider <span class="summaryRight">Line</span></summary>
+            <summary>
+              Divider
+              <span class="summaryRight">Line</span>
+            </summary>
+
             <div class="grid">
               <div class="field">
                 <label>Divider Width</label>
@@ -547,10 +525,18 @@
                 />
               </div>
             </div>
+
+            <div class="hint">
+              Divider X (% width) is inside each pill. In One Column mode, the
+              "Single Column Divider X (%)" is used for that mode.
+            </div>
           </details>
 
           <details>
-            <summary>Typography <span class="summaryRight">Text</span></summary>
+            <summary>
+              Typography
+              <span class="summaryRight">Text</span>
+            </summary>
 
             <div class="grid">
               <div class="field">
@@ -585,47 +571,7 @@
               </div>
             </div>
 
-            <!-- NEW: Qty two-line controls -->
-            <div class="grid three" style="margin-top: 10px">
-              <div class="field">
-                <label>Qty Two-Line</label>
-                <select id="qtyTwoLine">
-                  <option value="off" selected>Off</option>
-                  <option value="on">On</option>
-                </select>
-              </div>
-
-              <div class="field">
-                <label>Qty Line Gap (px)</label>
-                <input
-                  type="number"
-                  id="qtyLineGap"
-                  value="14"
-                  min="0"
-                  max="60"
-                />
-              </div>
-
-              <div class="field">
-                <label>Qty Bottom Size (%)</label>
-                <input
-                  type="number"
-                  id="qtyBottomScale"
-                  value="72"
-                  min="40"
-                  max="120"
-                />
-              </div>
-            </div>
-
-            <div class="hint">
-              When ON: qty renders as 2 lines (top=number, bottom=label). Use
-              either
-              <b>"330 Crystals"</b> (auto-split) or
-              <b>"330\nCrystals"</b> (explicit).
-            </div>
-
-            <div class="grid three">
+            <div class="grid">
               <div class="field">
                 <label>Qty X Offset</label>
                 <input
@@ -689,7 +635,11 @@
           </details>
 
           <details>
-            <summary>Colors <span class="summaryRight">Theme</span></summary>
+            <summary>
+              Colors
+              <span class="summaryRight">Theme</span>
+            </summary>
+
             <div class="grid three">
               <div class="field">
                 <label>Pill Fill</label>
@@ -707,7 +657,11 @@
           </details>
 
           <details>
-            <summary>Outline <span class="summaryRight">Stroke</span></summary>
+            <summary>
+              Outline
+              <span class="summaryRight">Stroke</span>
+            </summary>
+
             <div class="grid">
               <div class="field">
                 <label>Outline Mode</label>
@@ -729,6 +683,11 @@
               </div>
             </div>
           </details>
+
+          <div class="hint">
+            Tip: keep <b>Template & Layout</b> and <b>Data</b> open, collapse
+            the rest. The preview updates live.
+          </div>
         </div>
       </section>
 
@@ -745,27 +704,17 @@
         <div id="svgContainer"></div>
 
         <div class="footerNote">
-          Scroll inside the preview if SVG is large. Settings stay visible.
+          Scroll inside the preview if SVG is large. Your settings panel stays
+          in place.
         </div>
       </section>
     </div>
 
     <script>
-      // Elements
       const templateSelect = document.getElementById("templateSelect");
       const layoutModeSelect = document.getElementById("layoutMode");
       const singleDivPctInput = document.getElementById("singleDivPct");
       const jsonInput = document.getElementById("jsonInput");
-
-      const featuredDivPctInput = document.getElementById("featuredDivPct");
-
-      // Featured text position controls (✅ NEW)
-      const fQtyOffsetXInput = document.getElementById("fQtyOffsetX");
-      const fQtyOffsetYInput = document.getElementById("fQtyOffsetY");
-      const fQtyAnchorSelect = document.getElementById("fQtyAnchor");
-      const fPriceOffsetXInput = document.getElementById("fPriceOffsetX");
-      const fPriceOffsetYInput = document.getElementById("fPriceOffsetY");
-      const fPriceAnchorSelect = document.getElementById("fPriceAnchor");
 
       const rowLimitInput = document.getElementById("rowLimit");
       const rowSpacingInput = document.getElementById("rowSpacing");
@@ -784,11 +733,6 @@
 
       const textFontSizeInput = document.getElementById("textFontSize");
       const fontFamilySelect = document.getElementById("fontFamily");
-
-      // NEW: qty two-line controls
-      const qtyTwoLineSelect = document.getElementById("qtyTwoLine");
-      const qtyLineGapInput = document.getElementById("qtyLineGap");
-      const qtyBottomScaleInput = document.getElementById("qtyBottomScale");
 
       const qtyOffsetXInput = document.getElementById("qtyOffsetX");
       const qtyOffsetYInput = document.getElementById("qtyOffsetY");
@@ -811,7 +755,6 @@
       const itemCount = document.getElementById("itemCount");
       const modePill = document.getElementById("modePill");
 
-      // Templates: added featured text position defaults per template
       const TEMPLATES = {
         mlbb: {
           defaultData: [
@@ -837,20 +780,6 @@
           settings: {
             layoutMode: "two",
             singleDivPct: 63,
-            featuredDivPct: 63,
-
-            // ✅ NEW: featured pill text position defaults
-            fQtyOffsetX: 0,
-            fQtyOffsetY: 0,
-            fQtyAnchor: "auto",
-            fPriceOffsetX: 0,
-            fPriceOffsetY: 0,
-            fPriceAnchor: "auto",
-
-            // NEW: qty two-line defaults
-            qtyTwoLine: "off",
-            qtyLineGap: 14,
-            qtyBottomScale: 72,
 
             rowLimit: 28,
             rowSpacing: 55,
@@ -893,20 +822,6 @@
           settings: {
             layoutMode: "one",
             singleDivPct: 63,
-            featuredDivPct: 63,
-
-            // ✅ NEW: featured pill text position defaults
-            fQtyOffsetX: 0,
-            fQtyOffsetY: 0,
-            fQtyAnchor: "auto",
-            fPriceOffsetX: 0,
-            fPriceOffsetY: 0,
-            fPriceAnchor: "auto",
-
-            // NEW: qty two-line defaults
-            qtyTwoLine: "off",
-            qtyLineGap: 14,
-            qtyBottomScale: 72,
 
             rowLimit: 28,
             rowSpacing: 65,
@@ -949,20 +864,6 @@
           settings: {
             layoutMode: "two",
             singleDivPct: 63,
-            featuredDivPct: 63,
-
-            // ✅ NEW: featured pill text position defaults
-            fQtyOffsetX: 0,
-            fQtyOffsetY: 0,
-            fQtyAnchor: "auto",
-            fPriceOffsetX: 0,
-            fPriceOffsetY: 0,
-            fPriceAnchor: "auto",
-
-            // NEW: qty two-line defaults
-            qtyTwoLine: "off",
-            qtyLineGap: 14,
-            qtyBottomScale: 72,
 
             rowLimit: 28,
             rowSpacing: 55,
@@ -994,8 +895,8 @@
         },
       };
 
-      // Fonts
-      function preloadFonts() {
+      /* Fonts */
+      function loadAllFontOptions() {
         [...fontFamilySelect.options].forEach((opt) => {
           const val = opt.value;
           const q = opt.getAttribute("query") || "&display=swap";
@@ -1006,16 +907,15 @@
           document.head.appendChild(link);
         });
       }
+      loadAllFontOptions();
 
       function loadGoogleFont() {
         const opt = fontFamilySelect.options[fontFamilySelect.selectedIndex];
         const val = opt.value;
         if (val === "Arial") return;
-
         const q = opt.getAttribute("query") || "&display=swap";
         const old = document.getElementById("dynamicFontLoader");
         if (old) old.remove();
-
         const link = document.createElement("link");
         link.id = "dynamicFontLoader";
         link.rel = "stylesheet";
@@ -1036,30 +936,6 @@
         return pref && pref !== "auto" ? pref : fallback;
       }
 
-      // NEW: split qty into 2 lines
-      function splitQtyTwoLine(raw) {
-        const s = String(raw ?? "").trim();
-        if (!s) return { top: "", bottom: "" };
-
-        // explicit newline split wins
-        if (s.includes("\n")) {
-          const parts = s.split("\n");
-          return {
-            top: (parts[0] ?? "").trim(),
-            bottom: parts.slice(1).join("\n").trim(),
-          };
-        }
-
-        // auto split on last space
-        const idx = s.lastIndexOf(" ");
-        if (idx <= 0) return { top: s, bottom: "" };
-
-        return {
-          top: s.slice(0, idx).trim(),
-          bottom: s.slice(idx + 1).trim(),
-        };
-      }
-
       function applyTemplate(templateKey) {
         const tpl = TEMPLATES[templateKey];
         if (!tpl) return;
@@ -1069,20 +945,6 @@
 
         layoutModeSelect.value = s.layoutMode ?? "two";
         singleDivPctInput.value = s.singleDivPct ?? 63;
-        featuredDivPctInput.value = s.featuredDivPct ?? 63;
-
-        // ✅ apply featured text position defaults
-        fQtyOffsetXInput.value = s.fQtyOffsetX ?? 0;
-        fQtyOffsetYInput.value = s.fQtyOffsetY ?? 0;
-        fQtyAnchorSelect.value = s.fQtyAnchor ?? "auto";
-        fPriceOffsetXInput.value = s.fPriceOffsetX ?? 0;
-        fPriceOffsetYInput.value = s.fPriceOffsetY ?? 0;
-        fPriceAnchorSelect.value = s.fPriceAnchor ?? "auto";
-
-        // NEW: qty two-line defaults
-        qtyTwoLineSelect.value = s.qtyTwoLine ?? "off";
-        qtyLineGapInput.value = s.qtyLineGap ?? 14;
-        qtyBottomScaleInput.value = s.qtyBottomScale ?? 72;
 
         rowLimitInput.value = s.rowLimit ?? 28;
         rowSpacingInput.value = s.rowSpacing ?? 55;
@@ -1146,11 +1008,6 @@
         priceOffsetX,
         priceOffsetY,
         priceAnchorPref,
-
-        // NEW
-        qtyTwoLine,
-        qtyLineGap,
-        qtyBottomScale,
       }) {
         const cyDefault = y + topPad + h / 2;
 
@@ -1194,44 +1051,6 @@
           ? `stroke="${outlineColor}" stroke-width="${outlineW}"`
           : "";
 
-        const qtyIsTwoLine = qtyTwoLine === true;
-
-        let qtyTextSvg = "";
-        if (qtyIsTwoLine) {
-          const { top, bottom } = splitQtyTwoLine(qty);
-          const gap = Number.isFinite(qtyLineGap) ? qtyLineGap : 14;
-          const bottomScale = Number.isFinite(qtyBottomScale)
-            ? qtyBottomScale
-            : 0.72;
-
-          const topY = leftTextY - gap / 2;
-          const bottomY = leftTextY + gap / 2;
-
-          qtyTextSvg = `
-  <text x="${leftTextX}" y="${topY}"
-    fill="${textColor}" font-size="${fontSize}" font-family="${fontName}"
-    font-weight="800" text-anchor="${leftAnchor}" dominant-baseline="middle">${escXml(
-            top
-          )}</text>
-
-  <text x="${leftTextX}" y="${bottomY}"
-    fill="${textColor}" font-size="${
-            fontSize * bottomScale
-          }" font-family="${fontName}"
-    font-weight="800" text-anchor="${leftAnchor}" dominant-baseline="middle">${escXml(
-            bottom
-          )}</text>
-`;
-        } else {
-          qtyTextSvg = `
-  <text x="${leftTextX}" y="${leftTextY}"
-    fill="${textColor}" font-size="${fontSize}" font-family="${fontName}"
-    font-weight="800" text-anchor="${leftAnchor}" dominant-baseline="middle">${escXml(
-            qty
-          )}</text>
-`;
-        }
-
         return `
   <rect x="${x}" y="${
           y + topPad
@@ -1240,7 +1059,11 @@
           y + dividerY
         }" width="${dividerW}" height="${dividerH}" rx="${dividerR}" fill="${dividerColor}" />
 
-  ${qtyTextSvg}
+  <text x="${leftTextX}" y="${leftTextY}"
+    fill="${textColor}" font-size="${fontSize}" font-family="${fontName}"
+    font-weight="800" text-anchor="${leftAnchor}" dominant-baseline="middle">${escXml(
+          qty
+        )}</text>
 
   <text x="${rightTextX}" y="${rightTextY}"
     fill="${textColor}" font-size="${fontSize}" font-family="${fontName}"
@@ -1250,15 +1073,20 @@
 `;
       }
 
-      function renderTwoColumnInto(items, cfg, yOffset) {
+      function renderTwoColumn(items, cfg) {
         const leftCount = Math.ceil(items.length / 2);
+        const svgW = cfg.pillW * 2 + cfg.colSpacing;
+        const svgH = leftCount * cfg.rowSpacing;
+
+        let svg = `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="${svgW}" height="${svgH}" fill="transparent"/>`;
+
         const dividerXInPill = (cfg.pillW * cfg.dividerXPct) / 100;
 
-        let out = "";
         items.slice(0, leftCount).forEach((item, i) => {
-          out += drawPill({
+          svg += drawPill({
             x: 0,
-            y: yOffset + i * cfg.rowSpacing,
+            y: i * cfg.rowSpacing,
             w: cfg.pillW,
             h: cfg.pillH,
             r: cfg.pillR,
@@ -1286,18 +1114,14 @@
             priceOffsetX: cfg.priceOffsetX,
             priceOffsetY: cfg.priceOffsetY,
             priceAnchorPref: cfg.priceAnchorPref,
-
-            qtyTwoLine: cfg.qtyTwoLine,
-            qtyLineGap: cfg.qtyLineGap,
-            qtyBottomScale: cfg.qtyBottomScale,
           });
         });
 
         items.slice(leftCount).forEach((item, i) => {
           const pillX = cfg.pillW + cfg.colSpacing;
-          out += drawPill({
+          svg += drawPill({
             x: pillX,
-            y: yOffset + i * cfg.rowSpacing,
+            y: i * cfg.rowSpacing,
             w: cfg.pillW,
             h: cfg.pillH,
             r: cfg.pillR,
@@ -1325,26 +1149,9 @@
             priceOffsetX: cfg.priceOffsetX,
             priceOffsetY: cfg.priceOffsetY,
             priceAnchorPref: cfg.priceAnchorPref,
-
-            qtyTwoLine: cfg.qtyTwoLine,
-            qtyLineGap: cfg.qtyLineGap,
-            qtyBottomScale: cfg.qtyBottomScale,
           });
         });
 
-        const height = leftCount * cfg.rowSpacing;
-        return { out, height };
-      }
-
-      function renderTwoColumn(items, cfg) {
-        const svgW = cfg.pillW * 2 + cfg.colSpacing;
-        const leftCount = Math.ceil(items.length / 2);
-        const svgH = leftCount * cfg.rowSpacing;
-
-        let svg = `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="${svgW}" height="${svgH}" fill="transparent"/>`;
-
-        svg += renderTwoColumnInto(items, cfg, 0).out;
         svg += "\n</svg>";
         return svg;
       }
@@ -1389,85 +1196,8 @@
             priceOffsetX: cfg.priceOffsetX,
             priceOffsetY: cfg.priceOffsetY,
             priceAnchorPref: cfg.priceAnchorPref,
-
-            qtyTwoLine: cfg.qtyTwoLine,
-            qtyLineGap: cfg.qtyLineGap,
-            qtyBottomScale: cfg.qtyBottomScale,
           });
         });
-
-        svg += "\n</svg>";
-        return svg;
-      }
-
-      // ✅ Tiered: featured pill centered, SAME size, with its own text settings
-      function renderTiered(items, cfg) {
-        const fullW = cfg.pillW * 2 + cfg.colSpacing;
-
-        if (!items || items.length === 0) {
-          return `<svg width="${fullW}" height="1" viewBox="0 0 ${fullW} 1" xmlns="http://www.w3.org/2000/svg"></svg>`;
-        }
-
-        const featured = items[0];
-        const rest = items.slice(1);
-
-        const featuredW = cfg.pillW;
-        const featuredH = cfg.pillH;
-        const featuredX = (fullW - featuredW) / 2;
-        const featuredY = 0;
-
-        // Divider inside featured pill
-        const featuredDivX = featuredX + (featuredW * cfg.featuredDivPct) / 100;
-
-        // Secondary list starts next row rhythm
-        const listY = cfg.rowSpacing;
-
-        const list = renderTwoColumnInto(rest, cfg, listY);
-        const svgH = listY + (rest.length ? list.height : 0);
-        const finalH = Math.max(svgH, cfg.rowSpacing);
-
-        let svg = `<svg width="${fullW}" height="${finalH}" viewBox="0 0 ${fullW} ${finalH}" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="${fullW}" height="${finalH}" fill="transparent"/>`;
-
-        // Featured pill uses FEATURED text settings
-        svg += drawPill({
-          x: featuredX,
-          y: featuredY,
-          w: featuredW,
-          h: featuredH,
-          r: cfg.pillR,
-          topPad: cfg.topPad,
-          qty: featured.qty ?? "",
-          price: featured.sellingPrice ?? "",
-          fontSize: cfg.fontSize,
-          fontName: cfg.fontName,
-          fill: cfg.fill,
-          textColor: cfg.textColor,
-          dividerColor: cfg.dividerColor,
-          dividerW: cfg.dividerW,
-          dividerH: cfg.dividerH,
-          dividerR: cfg.dividerR,
-          dividerY: cfg.dividerY,
-          outlineMode: cfg.outlineMode,
-          outlineColor: cfg.outlineColor,
-          outlineW: cfg.outlineW,
-          dividerXOverride: featuredDivX,
-          side: "single",
-
-          qtyOffsetX: cfg.fQtyOffsetX,
-          qtyOffsetY: cfg.fQtyOffsetY,
-          qtyAnchorPref: cfg.fQtyAnchorPref,
-          priceOffsetX: cfg.fPriceOffsetX,
-          priceOffsetY: cfg.fPriceOffsetY,
-          priceAnchorPref: cfg.fPriceAnchorPref,
-
-          qtyTwoLine: cfg.qtyTwoLine,
-          qtyLineGap: cfg.qtyLineGap,
-          qtyBottomScale: cfg.qtyBottomScale,
-        });
-
-        // Secondary list uses NORMAL text settings (cfg.qtyOffsetX, etc)
-        svg += list.out;
 
         svg += "\n</svg>";
         return svg;
@@ -1490,7 +1220,6 @@
         const cfg = {
           layoutMode: layoutModeSelect.value,
           singleDivPct: parseFloat(singleDivPctInput.value) || 63,
-          featuredDivPct: parseFloat(featuredDivPctInput.value) || 63,
 
           rowSpacing: parseFloat(rowSpacingInput.value),
           colSpacing: parseFloat(colSpacingInput.value),
@@ -1512,12 +1241,6 @@
             " "
           )}, Arial, sans-serif`,
 
-          // NEW: qty two-line settings
-          qtyTwoLine: qtyTwoLineSelect.value === "on",
-          qtyLineGap: parseFloat(qtyLineGapInput.value) || 14,
-          qtyBottomScale: (parseFloat(qtyBottomScaleInput.value) || 72) / 100,
-
-          // Normal text settings
           qtyOffsetX: parseFloat(qtyOffsetXInput.value) || 0,
           qtyOffsetY: parseFloat(qtyOffsetYInput.value) || 0,
           qtyAnchorPref: qtyAnchorSelect.value,
@@ -1525,15 +1248,6 @@
           priceOffsetX: parseFloat(priceOffsetXInput.value) || 0,
           priceOffsetY: parseFloat(priceOffsetYInput.value) || 0,
           priceAnchorPref: priceAnchorSelect.value,
-
-          // ✅ Featured text settings
-          fQtyOffsetX: parseFloat(fQtyOffsetXInput.value) || 0,
-          fQtyOffsetY: parseFloat(fQtyOffsetYInput.value) || 0,
-          fQtyAnchorPref: fQtyAnchorSelect.value,
-
-          fPriceOffsetX: parseFloat(fPriceOffsetXInput.value) || 0,
-          fPriceOffsetY: parseFloat(fPriceOffsetYInput.value) || 0,
-          fPriceAnchorPref: fPriceAnchorSelect.value,
 
           fill: pillFillInput.value,
           textColor: textColorInput.value,
@@ -1544,28 +1258,26 @@
           outlineW: parseFloat(outlineWInput.value),
         };
 
-        let svg;
-        if (cfg.layoutMode === "one") svg = renderOneColumn(items, cfg);
-        else if (cfg.layoutMode === "tiered") svg = renderTiered(items, cfg);
-        else svg = renderTwoColumn(items, cfg);
+        const svg =
+          cfg.layoutMode === "one"
+            ? renderOneColumn(items, cfg)
+            : renderTwoColumn(items, cfg);
 
         svgContainer.innerHTML = svg;
 
+        // update UI pills
         modePill.textContent =
-          cfg.layoutMode === "one"
-            ? "One Column"
-            : cfg.layoutMode === "tiered"
-            ? "Tiered"
-            : "Two Columns";
-
+          cfg.layoutMode === "one" ? "One Column" : "Two Columns";
         itemCount.textContent = `${items.length} items`;
 
         const svgEl = svgContainer.querySelector("svg");
-        if (svgEl)
+        if (svgEl) {
           previewSize.textContent = `${svgEl.getAttribute(
             "width"
           )}×${svgEl.getAttribute("height")}`;
-        else previewSize.textContent = "—";
+        } else {
+          previewSize.textContent = "—";
+        }
       }
 
       function downloadSVG() {
@@ -1616,6 +1328,48 @@
         img.src = url;
       }
 
+      // Wire template defaults into UI
+      function applyTemplate(templateKey) {
+        const tpl = TEMPLATES[templateKey];
+        if (!tpl) return;
+        jsonInput.value = JSON.stringify(tpl.defaultData, null, 2);
+        const s = tpl.settings;
+
+        layoutModeSelect.value = s.layoutMode ?? "two";
+        singleDivPctInput.value = s.singleDivPct ?? 63;
+
+        rowLimitInput.value = s.rowLimit ?? 28;
+        rowSpacingInput.value = s.rowSpacing ?? 55;
+        colSpacingInput.value = s.colSpacing ?? 40;
+
+        pillWidthInput.value = s.pillW;
+        pillHeightInput.value = s.pillH;
+        pillRadiusInput.value = s.pillR;
+        topPadInput.value = s.topPad;
+
+        dividerWInput.value = s.dividerW;
+        dividerHInput.value = s.dividerH;
+        dividerRInput.value = s.dividerR;
+        dividerYInput.value = s.dividerY;
+        dividerXPctInput.value = s.dividerXPct ?? 50;
+
+        textFontSizeInput.value = s.fontSize;
+        fontFamilySelect.value = s.fontFamily;
+
+        qtyOffsetXInput.value = s.qtyOffsetX ?? 0;
+        qtyOffsetYInput.value = s.qtyOffsetY ?? 0;
+        qtyAnchorSelect.value = s.qtyAnchor ?? "auto";
+
+        priceOffsetXInput.value = s.priceOffsetX ?? 0;
+        priceOffsetYInput.value = s.priceOffsetY ?? 0;
+        priceAnchorSelect.value = s.priceAnchor ?? "auto";
+
+        outlineModeSelect.value = s.outlineMode ?? "none";
+
+        loadGoogleFont();
+        generateSVG();
+      }
+
       // events
       templateSelect.addEventListener("change", () =>
         applyTemplate(templateSelect.value)
@@ -1629,21 +1383,6 @@
         layoutModeSelect,
         singleDivPctInput,
         jsonInput,
-        featuredDivPctInput,
-
-        // ✅ featured text controls
-        fQtyOffsetXInput,
-        fQtyOffsetYInput,
-        fQtyAnchorSelect,
-        fPriceOffsetXInput,
-        fPriceOffsetYInput,
-        fPriceAnchorSelect,
-
-        // NEW: qty two-line controls
-        qtyTwoLineSelect,
-        qtyLineGapInput,
-        qtyBottomScaleInput,
-
         rowLimitInput,
         rowSpacingInput,
         colSpacingInput,
@@ -1671,9 +1410,19 @@
         outlineWInput,
       ].forEach((el) => el.addEventListener("input", generateSVG));
 
-      // init
+      // init fonts and template
       (function init() {
-        preloadFonts();
+        // preload all font options
+        [...fontFamilySelect.options].forEach((opt) => {
+          const val = opt.value;
+          const q = opt.getAttribute("query") || "&display=swap";
+          if (val === "Arial") return;
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = `https://fonts.googleapis.com/css2?family=${val}${q}`;
+          document.head.appendChild(link);
+        });
+
         loadGoogleFont();
         applyTemplate("mlbb");
       })();
