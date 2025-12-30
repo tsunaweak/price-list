@@ -688,6 +688,88 @@
             </div>
           </details>
 
+          <!-- ✅ NEW: Icon upload + placement -->
+          <details>
+            <summary>Icon <span class="summaryRight">Upload</span></summary>
+
+            <div class="grid">
+              <div class="field">
+                <label>Enable Icon</label>
+                <select id="iconEnabled">
+                  <option value="off" selected>Off</option>
+                  <option value="on">On</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Icon Placement</label>
+                <select id="iconPlacement">
+                  <option value="inside" selected>Inside</option>
+                  <option value="outside">Partially outside</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Upload Icon (PNG/JPG/WebP)</label>
+                <input type="file" id="iconUpload" accept="image/*" />
+              </div>
+
+              <div class="field">
+                <label>Icon Size (px)</label>
+                <input
+                  type="number"
+                  id="iconSize"
+                  value="26"
+                  min="0"
+                  max="120"
+                />
+              </div>
+
+              <div class="field">
+                <label>Icon Left Padding (px)</label>
+                <input
+                  type="number"
+                  id="iconPad"
+                  value="12"
+                  min="-80"
+                  max="200"
+                />
+              </div>
+
+              <div class="field">
+                <label>Icon ↔ Text Gap (px)</label>
+                <input type="number" id="iconGap" value="10" min="0" max="80" />
+              </div>
+
+              <div class="field">
+                <label>Icon Offset X</label>
+                <input
+                  type="number"
+                  id="iconOffsetX"
+                  value="0"
+                  min="-200"
+                  max="200"
+                />
+              </div>
+
+              <div class="field">
+                <label>Icon Offset Y</label>
+                <input
+                  type="number"
+                  id="iconOffsetY"
+                  value="0"
+                  min="-200"
+                  max="200"
+                />
+              </div>
+            </div>
+
+            <div class="hint">
+              Upload is embedded as base64 inside SVG so exports include the
+              icon. Use “Partially outside” for the badge-style look.
+            </div>
+          </details>
+
           <details>
             <summary>Colors <span class="summaryRight">Theme</span></summary>
             <div class="grid three">
@@ -759,7 +841,7 @@
 
       const featuredDivPctInput = document.getElementById("featuredDivPct");
 
-      // Featured text position controls (✅ NEW)
+      // Featured text position controls
       const fQtyOffsetXInput = document.getElementById("fQtyOffsetX");
       const fQtyOffsetYInput = document.getElementById("fQtyOffsetY");
       const fQtyAnchorSelect = document.getElementById("fQtyAnchor");
@@ -785,7 +867,7 @@
       const textFontSizeInput = document.getElementById("textFontSize");
       const fontFamilySelect = document.getElementById("fontFamily");
 
-      // NEW: qty two-line controls
+      // qty two-line controls
       const qtyTwoLineSelect = document.getElementById("qtyTwoLine");
       const qtyLineGapInput = document.getElementById("qtyLineGap");
       const qtyBottomScaleInput = document.getElementById("qtyBottomScale");
@@ -797,6 +879,19 @@
       const priceOffsetXInput = document.getElementById("priceOffsetX");
       const priceOffsetYInput = document.getElementById("priceOffsetY");
       const priceAnchorSelect = document.getElementById("priceAnchor");
+
+      // ✅ Icon controls (NEW)
+      const iconEnabledSelect = document.getElementById("iconEnabled");
+      const iconPlacementSelect = document.getElementById("iconPlacement");
+      const iconUploadInput = document.getElementById("iconUpload");
+      const iconSizeInput = document.getElementById("iconSize");
+      const iconPadInput = document.getElementById("iconPad");
+      const iconGapInput = document.getElementById("iconGap");
+      const iconOffsetXInput = document.getElementById("iconOffsetX");
+      const iconOffsetYInput = document.getElementById("iconOffsetY");
+
+      // Holds uploaded icon as base64 data URL
+      let uploadedIconDataUrl = "";
 
       const pillFillInput = document.getElementById("pillFill");
       const textColorInput = document.getElementById("textColor");
@@ -811,10 +906,13 @@
       const itemCount = document.getElementById("itemCount");
       const modePill = document.getElementById("modePill");
 
-      // Templates: added featured text position defaults per template
+      // Templates
       const TEMPLATES = {
         mlbb: {
           defaultData: [
+            { qty: "WDP", sellingPrice: "₱87" },
+            { qty: "Normal\nStarlight", sellingPrice: "₱237" },
+            { qty: "Starlight\nPlus", sellingPrice: "₱583" },
             { qty: "56", sellingPrice: "₱44" },
             { qty: "168", sellingPrice: "₱132" },
             { qty: "223", sellingPrice: "₱176" },
@@ -839,7 +937,6 @@
             singleDivPct: 63,
             featuredDivPct: 63,
 
-            // ✅ NEW: featured pill text position defaults
             fQtyOffsetX: 0,
             fQtyOffsetY: 0,
             fQtyAnchor: "auto",
@@ -847,7 +944,6 @@
             fPriceOffsetY: 0,
             fPriceAnchor: "auto",
 
-            // NEW: qty two-line defaults
             qtyTwoLine: "off",
             qtyLineGap: 14,
             qtyBottomScale: 72,
@@ -877,6 +973,15 @@
             priceOffsetY: 0,
             priceAnchor: "auto",
 
+            // ✅ Icon defaults (upload-driven; upload file to actually show)
+            iconEnabled: "on",
+            iconPlacement: "outside",
+            iconSize: 26,
+            iconPad: 12,
+            iconGap: 10,
+            iconOffsetX: 0,
+            iconOffsetY: 0,
+
             outlineMode: "none",
           },
         },
@@ -895,7 +1000,6 @@
             singleDivPct: 63,
             featuredDivPct: 63,
 
-            // ✅ NEW: featured pill text position defaults
             fQtyOffsetX: 0,
             fQtyOffsetY: 0,
             fQtyAnchor: "auto",
@@ -903,7 +1007,6 @@
             fPriceOffsetY: 0,
             fPriceAnchor: "auto",
 
-            // NEW: qty two-line defaults
             qtyTwoLine: "off",
             qtyLineGap: 14,
             qtyBottomScale: 72,
@@ -933,6 +1036,14 @@
             priceOffsetY: 0,
             priceAnchor: "auto",
 
+            iconEnabled: "off",
+            iconPlacement: "inside",
+            iconSize: 26,
+            iconPad: 12,
+            iconGap: 10,
+            iconOffsetX: 0,
+            iconOffsetY: 0,
+
             outlineMode: "none",
           },
         },
@@ -951,7 +1062,6 @@
             singleDivPct: 63,
             featuredDivPct: 63,
 
-            // ✅ NEW: featured pill text position defaults
             fQtyOffsetX: 0,
             fQtyOffsetY: 0,
             fQtyAnchor: "auto",
@@ -959,7 +1069,6 @@
             fPriceOffsetY: 0,
             fPriceAnchor: "auto",
 
-            // NEW: qty two-line defaults
             qtyTwoLine: "off",
             qtyLineGap: 14,
             qtyBottomScale: 72,
@@ -988,6 +1097,14 @@
             priceOffsetX: 0,
             priceOffsetY: 0,
             priceAnchor: "auto",
+
+            iconEnabled: "on",
+            iconPlacement: "inside",
+            iconSize: 26,
+            iconPad: 12,
+            iconGap: 10,
+            iconOffsetX: 0,
+            iconOffsetY: 0,
 
             outlineMode: "none",
           },
@@ -1036,28 +1153,46 @@
         return pref && pref !== "auto" ? pref : fallback;
       }
 
-      // NEW: split qty into 2 lines
+      // split qty into 2 lines
       function splitQtyTwoLine(raw) {
         const s = String(raw ?? "").trim();
         if (!s) return { top: "", bottom: "" };
 
         // explicit newline split wins
         if (s.includes("\n")) {
-          const parts = s.split("\n");
-          return {
-            top: (parts[0] ?? "").trim(),
-            bottom: parts.slice(1).join("\n").trim(),
-          };
+          const parts = s
+            .split("\n")
+            .map((p) => p.trim())
+            .filter(Boolean);
+          if (parts.length >= 2) {
+            return { top: parts[0], bottom: parts.slice(1).join("\n") };
+          }
+          // only 1 real part -> no split
+          return { top: s.replace(/\n/g, " ").trim(), bottom: "" };
         }
 
-        // auto split on last space
+        // auto split on last space (ONLY if it truly has 2 parts)
         const idx = s.lastIndexOf(" ");
         if (idx <= 0) return { top: s, bottom: "" };
 
-        return {
-          top: s.slice(0, idx).trim(),
-          bottom: s.slice(idx + 1).trim(),
-        };
+        const top = s.slice(0, idx).trim();
+        const bottom = s.slice(idx + 1).trim();
+        if (!top || !bottom) return { top: s, bottom: "" };
+
+        return { top, bottom };
+      }
+
+      function buildIconDefs(cfg) {
+        if (!cfg.iconEnabled || !cfg.iconDataUrl) return "";
+
+        // Put the raster icon into a symbol once
+        // width/height here are "1" and the <use> scales it via width/height
+        return `
+  <defs>
+    <symbol id="iconSymbol" viewBox="0 0 1 1" overflow="visible">
+      <image x="0" y="0" width="1" height="1" href="${cfg.iconDataUrl}" preserveAspectRatio="xMidYMid meet" />
+    </symbol>
+  </defs>`;
       }
 
       function applyTemplate(templateKey) {
@@ -1071,7 +1206,6 @@
         singleDivPctInput.value = s.singleDivPct ?? 63;
         featuredDivPctInput.value = s.featuredDivPct ?? 63;
 
-        // ✅ apply featured text position defaults
         fQtyOffsetXInput.value = s.fQtyOffsetX ?? 0;
         fQtyOffsetYInput.value = s.fQtyOffsetY ?? 0;
         fQtyAnchorSelect.value = s.fQtyAnchor ?? "auto";
@@ -1079,7 +1213,6 @@
         fPriceOffsetYInput.value = s.fPriceOffsetY ?? 0;
         fPriceAnchorSelect.value = s.fPriceAnchor ?? "auto";
 
-        // NEW: qty two-line defaults
         qtyTwoLineSelect.value = s.qtyTwoLine ?? "off";
         qtyLineGapInput.value = s.qtyLineGap ?? 14;
         qtyBottomScaleInput.value = s.qtyBottomScale ?? 72;
@@ -1109,6 +1242,15 @@
         priceOffsetXInput.value = s.priceOffsetX ?? 0;
         priceOffsetYInput.value = s.priceOffsetY ?? 0;
         priceAnchorSelect.value = s.priceAnchor ?? "auto";
+
+        // ✅ icon defaults
+        iconEnabledSelect.value = s.iconEnabled ?? "off";
+        iconPlacementSelect.value = s.iconPlacement ?? "inside";
+        iconSizeInput.value = s.iconSize ?? 26;
+        iconPadInput.value = s.iconPad ?? 12;
+        iconGapInput.value = s.iconGap ?? 10;
+        iconOffsetXInput.value = s.iconOffsetX ?? 0;
+        iconOffsetYInput.value = s.iconOffsetY ?? 0;
 
         outlineModeSelect.value = s.outlineMode ?? "none";
 
@@ -1147,10 +1289,19 @@
         priceOffsetY,
         priceAnchorPref,
 
-        // NEW
         qtyTwoLine,
         qtyLineGap,
         qtyBottomScale,
+
+        // ✅ icon (NEW)
+        iconEnabled,
+        iconPlacement,
+        iconDataUrl,
+        iconSize,
+        iconPad,
+        iconGap,
+        iconOffsetX,
+        iconOffsetY,
       }) {
         const cyDefault = y + topPad + h / 2;
 
@@ -1178,6 +1329,27 @@
           rightAnchorDefault = "middle";
         }
 
+        // ✅ icon positioning + text clearance
+        const hasIcon = !!iconEnabled && !!iconDataUrl && (iconSize || 0) > 0;
+        const placeOutside = hasIcon && iconPlacement === "outside";
+        const outsidePeek = 0.45; // % of icon size that sticks out to the left
+
+        if (hasIcon) {
+          const insideShift = (iconPad || 0) + iconSize + (iconGap || 0);
+          const outsideShift =
+            (iconPad || 0) + iconSize * (1 - outsidePeek) + (iconGap || 0);
+
+          if (side === "single") {
+            leftTextXDefault = x + (placeOutside ? outsideShift : insideShift);
+            leftAnchorDefault = "start";
+          } else {
+            const nominalCenter = x + w * 0.25;
+            const minSafeX =
+              x + (placeOutside ? outsideShift : insideShift) + 10;
+            if (minSafeX > nominalCenter) leftTextXDefault = minSafeX + 10;
+          }
+        }
+
         const leftTextX = leftTextXDefault + (qtyOffsetX || 0);
         const leftTextY = cyDefault + (qtyOffsetY || 0);
         const leftAnchor = resolveAnchor(qtyAnchorPref, leftAnchorDefault);
@@ -1194,11 +1366,35 @@
           ? `stroke="${outlineColor}" stroke-width="${outlineW}"`
           : "";
 
-        const qtyIsTwoLine = qtyTwoLine === true;
+        // icon SVG element
+        let iconSvg = "";
+        if (hasIcon) {
+          const cy = cyDefault;
+          const outsidePeek = 0.45;
+          const placeOutside = hasIcon && iconPlacement === "outside";
+
+          const baseX = placeOutside
+            ? x - iconSize * outsidePeek + (iconPad || 0)
+            : x + (iconPad || 0);
+
+          const ix = baseX + (iconOffsetX || 0);
+          const iy = cy - iconSize / 2 + (iconOffsetY || 0);
+
+          // IMPORTANT: use <use> so the base64 isn't duplicated per row
+          iconSvg = `
+    <use href="#iconSymbol" x="${ix}" y="${iy}" width="${iconSize}" height="${iconSize}" />
+  `;
+        }
+
+        const wantsTwoLine = qtyTwoLine === true;
+        const parts = wantsTwoLine
+          ? splitQtyTwoLine(qty)
+          : { top: qty, bottom: "" };
+        const qtyIsTwoLine = wantsTwoLine && !!parts.bottom;
 
         let qtyTextSvg = "";
         if (qtyIsTwoLine) {
-          const { top, bottom } = splitQtyTwoLine(qty);
+          const { top, bottom } = parts;
           const gap = Number.isFinite(qtyLineGap) ? qtyLineGap : 14;
           const bottomScale = Number.isFinite(qtyBottomScale)
             ? qtyBottomScale
@@ -1208,28 +1404,29 @@
           const bottomY = leftTextY + gap / 2;
 
           qtyTextSvg = `
-  <text x="${leftTextX}" y="${topY}"
-    fill="${textColor}" font-size="${fontSize}" font-family="${fontName}"
-    font-weight="800" text-anchor="${leftAnchor}" dominant-baseline="middle">${escXml(
+    <text x="${leftTextX}" y="${topY}"
+      fill="${textColor}" font-size="${fontSize}" font-family="${fontName}"
+      font-weight="800" text-anchor="${leftAnchor}" dominant-baseline="middle">${escXml(
             top
           )}</text>
 
-  <text x="${leftTextX}" y="${bottomY}"
-    fill="${textColor}" font-size="${
+    <text x="${leftTextX}" y="${bottomY}"
+      fill="${textColor}" font-size="${
             fontSize * bottomScale
           }" font-family="${fontName}"
-    font-weight="800" text-anchor="${leftAnchor}" dominant-baseline="middle">${escXml(
+      font-weight="800" text-anchor="${leftAnchor}" dominant-baseline="middle">${escXml(
             bottom
           )}</text>
-`;
+  `;
         } else {
+          // if two-line is ON but there's nothing to split, show single-line as-is
           qtyTextSvg = `
-  <text x="${leftTextX}" y="${leftTextY}"
-    fill="${textColor}" font-size="${fontSize}" font-family="${fontName}"
-    font-weight="800" text-anchor="${leftAnchor}" dominant-baseline="middle">${escXml(
+    <text x="${leftTextX}" y="${leftTextY}"
+      fill="${textColor}" font-size="${fontSize}" font-family="${fontName}"
+      font-weight="800" text-anchor="${leftAnchor}" dominant-baseline="middle">${escXml(
             qty
           )}</text>
-`;
+  `;
         }
 
         return `
@@ -1240,6 +1437,8 @@
           y + dividerY
         }" width="${dividerW}" height="${dividerH}" rx="${dividerR}" fill="${dividerColor}" />
 
+  ${iconSvg}
+
   ${qtyTextSvg}
 
   <text x="${rightTextX}" y="${rightTextY}"
@@ -1248,6 +1447,14 @@
           price
         )}</text>
 `;
+      }
+
+      // left bleed so "outside" icons don't get cut off
+      function computeLeftBleed(cfg) {
+        if (!cfg.iconEnabled) return 0;
+        if (cfg.iconPlacement !== "outside") return 0;
+        const outsidePeek = 0.45;
+        return Math.ceil((cfg.iconSize || 0) * outsidePeek);
       }
 
       function renderTwoColumnInto(items, cfg, yOffset) {
@@ -1278,7 +1485,7 @@
             outlineColor: cfg.outlineColor,
             outlineW: cfg.outlineW,
             side: "left",
-            dividerXOverride: 0 + dividerXInPill,
+            dividerXOverride: dividerXInPill,
 
             qtyOffsetX: cfg.qtyOffsetX,
             qtyOffsetY: cfg.qtyOffsetY,
@@ -1290,6 +1497,15 @@
             qtyTwoLine: cfg.qtyTwoLine,
             qtyLineGap: cfg.qtyLineGap,
             qtyBottomScale: cfg.qtyBottomScale,
+
+            iconEnabled: cfg.iconEnabled,
+            iconPlacement: cfg.iconPlacement,
+            iconDataUrl: cfg.iconDataUrl,
+            iconSize: cfg.iconSize,
+            iconPad: cfg.iconPad,
+            iconGap: cfg.iconGap,
+            iconOffsetX: cfg.iconOffsetX,
+            iconOffsetY: cfg.iconOffsetY,
           });
         });
 
@@ -1329,6 +1545,15 @@
             qtyTwoLine: cfg.qtyTwoLine,
             qtyLineGap: cfg.qtyLineGap,
             qtyBottomScale: cfg.qtyBottomScale,
+
+            iconEnabled: cfg.iconEnabled,
+            iconPlacement: cfg.iconPlacement,
+            iconDataUrl: cfg.iconDataUrl,
+            iconSize: cfg.iconSize,
+            iconPad: cfg.iconPad,
+            iconGap: cfg.iconGap,
+            iconOffsetX: cfg.iconOffsetX,
+            iconOffsetY: cfg.iconOffsetY,
           });
         });
 
@@ -1337,12 +1562,19 @@
       }
 
       function renderTwoColumn(items, cfg) {
-        const svgW = cfg.pillW * 2 + cfg.colSpacing;
+        const leftBleed = computeLeftBleed(cfg);
+        const baseW = cfg.pillW * 2 + cfg.colSpacing;
+        const svgW = baseW + leftBleed;
+        const defs = buildIconDefs(cfg);
+
         const leftCount = Math.ceil(items.length / 2);
         const svgH = leftCount * cfg.rowSpacing;
 
-        let svg = `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="${svgW}" height="${svgH}" fill="transparent"/>`;
+        let svg = `<svg width="${svgW}" height="${svgH}"
+    viewBox="${-leftBleed} 0 ${svgW} ${svgH}"
+    xmlns="http://www.w3.org/2000/svg">
+    ${defs}
+    <rect x="${-leftBleed}" y="0" width="${svgW}" height="${svgH}" fill="transparent"/>`;
 
         svg += renderTwoColumnInto(items, cfg, 0).out;
         svg += "\n</svg>";
@@ -1350,11 +1582,16 @@
       }
 
       function renderOneColumn(items, cfg) {
-        const svgW = cfg.pillW;
+        const leftBleed = computeLeftBleed(cfg);
+        const baseW = cfg.pillW;
+        const svgW = baseW + leftBleed;
         const svgH = items.length * cfg.rowSpacing;
-
-        let svg = `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="${svgW}" height="${svgH}" fill="transparent"/>`;
+        const defs = buildIconDefs(cfg);
+        let svg = `<svg width="${svgW}" height="${svgH}"
+    viewBox="${-leftBleed} 0 ${svgW} ${svgH}"
+    xmlns="http://www.w3.org/2000/svg">
+    ${defs}
+  <rect x="${-leftBleed}" y="0" width="${svgW}" height="${svgH}" fill="transparent"/>`;
 
         const dividerX = (cfg.pillW * cfg.singleDivPct) / 100;
 
@@ -1393,6 +1630,15 @@
             qtyTwoLine: cfg.qtyTwoLine,
             qtyLineGap: cfg.qtyLineGap,
             qtyBottomScale: cfg.qtyBottomScale,
+
+            iconEnabled: cfg.iconEnabled,
+            iconPlacement: cfg.iconPlacement,
+            iconDataUrl: cfg.iconDataUrl,
+            iconSize: cfg.iconSize,
+            iconPad: cfg.iconPad,
+            iconGap: cfg.iconGap,
+            iconOffsetX: cfg.iconOffsetX,
+            iconOffsetY: cfg.iconOffsetY,
           });
         });
 
@@ -1400,12 +1646,14 @@
         return svg;
       }
 
-      // ✅ Tiered: featured pill centered, SAME size, with its own text settings
+      // Tiered: featured pill centered, same size, with its own text settings
       function renderTiered(items, cfg) {
-        const fullW = cfg.pillW * 2 + cfg.colSpacing;
-
+        const leftBleed = computeLeftBleed(cfg);
+        const baseW = cfg.pillW * 2 + cfg.colSpacing;
+        const svgW = baseW + leftBleed;
+        const defs = buildIconDefs(cfg);
         if (!items || items.length === 0) {
-          return `<svg width="${fullW}" height="1" viewBox="0 0 ${fullW} 1" xmlns="http://www.w3.org/2000/svg"></svg>`;
+          return `<svg width="${svgW}" height="1" viewBox="${-leftBleed} 0 ${svgW} 1" xmlns="http://wwwwww.w3.org/2000/svg"></svg>`;
         }
 
         const featured = items[0];
@@ -1413,23 +1661,22 @@
 
         const featuredW = cfg.pillW;
         const featuredH = cfg.pillH;
-        const featuredX = (fullW - featuredW) / 2;
+        const featuredX = (baseW - featuredW) / 2;
         const featuredY = 0;
 
-        // Divider inside featured pill
         const featuredDivX = featuredX + (featuredW * cfg.featuredDivPct) / 100;
 
-        // Secondary list starts next row rhythm
         const listY = cfg.rowSpacing;
-
         const list = renderTwoColumnInto(rest, cfg, listY);
         const svgH = listY + (rest.length ? list.height : 0);
         const finalH = Math.max(svgH, cfg.rowSpacing);
 
-        let svg = `<svg width="${fullW}" height="${finalH}" viewBox="0 0 ${fullW} ${finalH}" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="${fullW}" height="${finalH}" fill="transparent"/>`;
+        let svg = `<svg width="${svgW}" height="${finalH}"
+    viewBox="${-leftBleed} 0 ${svgW} ${finalH}"
+    xmlns="http://www.w3.org/2000/svg">
+     ${defs}
+  <rect x="${-leftBleed}" y="0" width="${svgW}" height="${finalH}" fill="transparent"/>`;
 
-        // Featured pill uses FEATURED text settings
         svg += drawPill({
           x: featuredX,
           y: featuredY,
@@ -1464,11 +1711,18 @@
           qtyTwoLine: cfg.qtyTwoLine,
           qtyLineGap: cfg.qtyLineGap,
           qtyBottomScale: cfg.qtyBottomScale,
+
+          iconEnabled: cfg.iconEnabled,
+          iconPlacement: cfg.iconPlacement,
+          iconDataUrl: cfg.iconDataUrl,
+          iconSize: cfg.iconSize,
+          iconPad: cfg.iconPad,
+          iconGap: cfg.iconGap,
+          iconOffsetX: cfg.iconOffsetX,
+          iconOffsetY: cfg.iconOffsetY,
         });
 
-        // Secondary list uses NORMAL text settings (cfg.qtyOffsetX, etc)
         svg += list.out;
-
         svg += "\n</svg>";
         return svg;
       }
@@ -1512,12 +1766,10 @@
             " "
           )}, Arial, sans-serif`,
 
-          // NEW: qty two-line settings
           qtyTwoLine: qtyTwoLineSelect.value === "on",
           qtyLineGap: parseFloat(qtyLineGapInput.value) || 14,
           qtyBottomScale: (parseFloat(qtyBottomScaleInput.value) || 72) / 100,
 
-          // Normal text settings
           qtyOffsetX: parseFloat(qtyOffsetXInput.value) || 0,
           qtyOffsetY: parseFloat(qtyOffsetYInput.value) || 0,
           qtyAnchorPref: qtyAnchorSelect.value,
@@ -1526,7 +1778,6 @@
           priceOffsetY: parseFloat(priceOffsetYInput.value) || 0,
           priceAnchorPref: priceAnchorSelect.value,
 
-          // ✅ Featured text settings
           fQtyOffsetX: parseFloat(fQtyOffsetXInput.value) || 0,
           fQtyOffsetY: parseFloat(fQtyOffsetYInput.value) || 0,
           fQtyAnchorPref: fQtyAnchorSelect.value,
@@ -1534,6 +1785,16 @@
           fPriceOffsetX: parseFloat(fPriceOffsetXInput.value) || 0,
           fPriceOffsetY: parseFloat(fPriceOffsetYInput.value) || 0,
           fPriceAnchorPref: fPriceAnchorSelect.value,
+
+          // ✅ icon cfg
+          iconEnabled: iconEnabledSelect.value === "on",
+          iconPlacement: iconPlacementSelect.value, // inside | outside
+          iconDataUrl: uploadedIconDataUrl,
+          iconSize: parseFloat(iconSizeInput.value) || 0,
+          iconPad: parseFloat(iconPadInput.value) || 0,
+          iconGap: parseFloat(iconGapInput.value) || 0,
+          iconOffsetX: parseFloat(iconOffsetXInput.value) || 0,
+          iconOffsetY: parseFloat(iconOffsetYInput.value) || 0,
 
           fill: pillFillInput.value,
           textColor: textColorInput.value,
@@ -1616,6 +1877,22 @@
         img.src = url;
       }
 
+      // ✅ Upload icon → base64
+      iconUploadInput.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) {
+          uploadedIconDataUrl = "";
+          generateSVG();
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          uploadedIconDataUrl = String(reader.result || "");
+          generateSVG();
+        };
+        reader.readAsDataURL(file);
+      });
+
       // events
       templateSelect.addEventListener("change", () =>
         applyTemplate(templateSelect.value)
@@ -1631,7 +1908,6 @@
         jsonInput,
         featuredDivPctInput,
 
-        // ✅ featured text controls
         fQtyOffsetXInput,
         fQtyOffsetYInput,
         fQtyAnchorSelect,
@@ -1639,7 +1915,6 @@
         fPriceOffsetYInput,
         fPriceAnchorSelect,
 
-        // NEW: qty two-line controls
         qtyTwoLineSelect,
         qtyLineGapInput,
         qtyBottomScaleInput,
@@ -1663,6 +1938,16 @@
         priceOffsetXInput,
         priceOffsetYInput,
         priceAnchorSelect,
+
+        // ✅ icon inputs (NEW)
+        iconEnabledSelect,
+        iconPlacementSelect,
+        iconSizeInput,
+        iconPadInput,
+        iconGapInput,
+        iconOffsetXInput,
+        iconOffsetYInput,
+
         pillFillInput,
         textColorInput,
         dividerColorInput,
