@@ -33,7 +33,7 @@ document
     const priceRaw = priceEl.textContent.trim();
 
     const price = parsePrice(priceRaw);
-    const sellingPrice = Math.round(price * 1.02);
+    const sellingPrice = Math.round(price * 1.03);
 
     const cleaned = name.replace(/Diamonds\s*\([^)]*\)/, "").trim();
 
