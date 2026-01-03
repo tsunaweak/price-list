@@ -3,8 +3,9 @@ function parsePrice(p) {
 }
 
 const replace = {
-  "301 Diamonds ( 274 + 27  )": "Normal Starlight (301 Diamonds)",
-  "749 Diamonds ( 667 + 82  )": "Starlight Plus (749 Diamonds)",
+  "Weekly Diamond Pass": "WDP",
+  "301 Diamonds ( 274 + 27  )": "Normal Starlight",
+  "749 Diamonds ( 667 + 82  )": "Starlight Plus",
 };
 
 const skip = [
@@ -35,7 +36,8 @@ document
     const price = parsePrice(priceRaw);
     const sellingPrice = Math.round(price * 1.03);
 
-    const cleaned = name.replace(/Diamonds\s*\([^)]*\)/, "").trim();
+    let cleaned = name.replace(/Diamonds\s*\([^)]*\)/, "").replace(/\s*\(\d+\s*Diamonds\)/gi, "").trim();
+
 
     if (price > 40) {
       productsMap.set(name, {

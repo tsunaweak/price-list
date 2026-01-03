@@ -246,6 +246,86 @@
         color: var(--muted);
         font-size: 12px;
       }
+
+      /* ===== Modal (Table Editor) ===== */
+      .modalOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+      .modalOverlay.open {
+        display: flex;
+      }
+      .modal {
+        width: min(1200px, 96vw);
+        max-height: 88vh;
+        background: linear-gradient(180deg, var(--panel), var(--panel2));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .modalHeader,
+      .modalFooter {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .modalFooter {
+        border-top: 1px solid var(--border);
+        border-bottom: none;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .modalBody {
+        padding: 12px 14px;
+        overflow: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 8px 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        font-size: 13px;
+        vertical-align: middle;
+      }
+      th {
+        text-align: left;
+        color: var(--muted);
+        font-weight: 800;
+      }
+      .tableInput {
+        width: 100%;
+        padding: 8px 8px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(0, 0, 0, 0.25);
+        color: var(--text);
+        font-size: 13px;
+        outline: none;
+      }
+      .readonlyCell {
+        font-weight: 800;
+        opacity: 0.9;
+        white-space: nowrap;
+      }
+      .miniActions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
     </style>
   </head>
 
@@ -258,6 +338,7 @@
         </div>
 
         <div class="actions">
+          <button type="button" onclick="openTableEditor()">Edit Table</button>
           <button onclick="downloadSVG()">Download SVG</button>
           <button onclick="downloadJPG()">Download JPG</button>
         </div>
@@ -329,6 +410,12 @@
             <div class="field">
               <label>Paste JSON</label>
               <textarea id="jsonInput"></textarea>
+            </div>
+            <div class="hint">
+              Supported fields per row:
+              <b>name</b>, <b>qty</b>, <b>price</b>, <b>originalPrice</b>,
+              <b>sellingPrice</b>. Margin is computed:
+              <b>sellingPrice - originalPrice</b>.
             </div>
           </details>
 
@@ -585,7 +672,6 @@
               </div>
             </div>
 
-            <!-- NEW: Qty two-line controls -->
             <div class="grid three" style="margin-top: 10px">
               <div class="field">
                 <label>Qty Two-Line</label>
@@ -620,8 +706,7 @@
 
             <div class="hint">
               When ON: qty renders as 2 lines (top=number, bottom=label). Use
-              either
-              <b>"330 Crystals"</b> (auto-split) or
+              either <b>"330 Crystals"</b> (auto-split) or
               <b>"330\nCrystals"</b> (explicit).
             </div>
 
@@ -688,7 +773,7 @@
             </div>
           </details>
 
-          <!-- ✅ NEW: Icon upload + placement -->
+          <!-- ✅ Icon upload + per-pill option -->
           <details>
             <summary>Icon <span class="summaryRight">Upload</span></summary>
 
@@ -702,6 +787,24 @@
               </div>
 
               <div class="field">
+                <label>Icon Mode</label>
+                <select id="iconMode">
+                  <option value="global" selected>Global (one icon)</option>
+                  <option value="per">Per-pill (custom each row)</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Per-pill fallback</label>
+                <select id="perFallbackToGlobal">
+                  <option value="on" selected>
+                    Use Global icon for every pill (fallback)
+                  </option>
+                  <option value="off">Only use per-pill icons</option>
+                </select>
+              </div>
+
+              <div class="field">
                 <label>Icon Placement</label>
                 <select id="iconPlacement">
                   <option value="inside" selected>Inside</option>
@@ -710,7 +813,7 @@
               </div>
 
               <div class="field">
-                <label>Upload Icon (PNG/JPG/WebP)</label>
+                <label>Upload Global Icon (PNG/JPG/WebP)</label>
                 <input type="file" id="iconUpload" accept="image/*" />
               </div>
 
@@ -765,8 +868,34 @@
             </div>
 
             <div class="hint">
-              Upload is embedded as base64 inside SVG so exports include the
-              icon. Use “Partially outside” for the badge-style look.
+              In <b>Per-pill</b> mode, if "fallback" is ON and a Global icon is
+              uploaded, it will be used automatically for pills that don’t have
+              their own icon (or for all pills if you don’t set any per-pill).
+            </div>
+
+            <div id="perIconWrap" style="display: none; margin-top: 10px">
+              <div class="hint" style="margin-top: 0">
+                Per-pill icons are stored in memory (refresh clears). Each icon
+                will be embedded into the exported SVG.
+              </div>
+
+              <div
+                id="perIconList"
+                style="display: flex; flex-direction: column; gap: 10px"
+              ></div>
+
+              <div
+                style="
+                  display: flex;
+                  gap: 10px;
+                  flex-wrap: wrap;
+                  margin-top: 10px;
+                "
+              >
+                <button type="button" id="clearPerIconsBtn">
+                  Clear per-pill icons
+                </button>
+              </div>
             </div>
           </details>
 
@@ -832,6 +961,45 @@
       </section>
     </div>
 
+    <!-- ===== Data Table Editor Modal ===== -->
+    <div class="modalOverlay" id="tableModal" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modalHeader">
+          <strong>Data Table Editor</strong>
+          <div class="miniActions">
+            <button type="button" id="addRowBtn">Add Row</button>
+            <button type="button" id="closeTableBtn">✕</button>
+          </div>
+        </div>
+
+        <div class="modalBody">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 18%">Name</th>
+                <th style="width: 22%">Qty (shown)</th>
+                <th style="width: 14%">Original</th>
+                <th style="width: 14%">Selling</th>
+                <th style="width: 12%">Margin</th>
+                <th style="width: 20%">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+
+          <div class="hint" style="margin-top: 10px">
+            Margin auto-computes as: <b>sellingPrice - originalPrice</b>. Price
+            string auto-syncs to <b>₱{sellingPrice}</b>.
+          </div>
+        </div>
+
+        <div class="modalFooter">
+          Tip: You can still paste raw JSON in the textarea — the table will
+          normalize missing fields when opened.
+        </div>
+      </div>
+    </div>
+
     <script>
       // Elements
       const templateSelect = document.getElementById("templateSelect");
@@ -880,8 +1048,12 @@
       const priceOffsetYInput = document.getElementById("priceOffsetY");
       const priceAnchorSelect = document.getElementById("priceAnchor");
 
-      // ✅ Icon controls (NEW)
+      // ✅ Icon controls
       const iconEnabledSelect = document.getElementById("iconEnabled");
+      const iconModeSelect = document.getElementById("iconMode");
+      const perFallbackToGlobalSelect = document.getElementById(
+        "perFallbackToGlobal"
+      );
       const iconPlacementSelect = document.getElementById("iconPlacement");
       const iconUploadInput = document.getElementById("iconUpload");
       const iconSizeInput = document.getElementById("iconSize");
@@ -890,8 +1062,16 @@
       const iconOffsetXInput = document.getElementById("iconOffsetX");
       const iconOffsetYInput = document.getElementById("iconOffsetY");
 
-      // Holds uploaded icon as base64 data URL
+      // Per-pill UI
+      const perIconWrap = document.getElementById("perIconWrap");
+      const perIconList = document.getElementById("perIconList");
+      const clearPerIconsBtn = document.getElementById("clearPerIconsBtn");
+
+      // Holds uploaded GLOBAL icon as base64 data URL
       let uploadedIconDataUrl = "";
+
+      // index -> base64 data URL (per-pill)
+      const perPillIconMap = new Map();
 
       const pillFillInput = document.getElementById("pillFill");
       const textColorInput = document.getElementById("textColor");
@@ -906,31 +1086,242 @@
       const itemCount = document.getElementById("itemCount");
       const modePill = document.getElementById("modePill");
 
-      // Templates
+      // ===== Table Editor Elements =====
+      const tableModal = document.getElementById("tableModal");
+      const tableBody = document.getElementById("tableBody");
+      const closeTableBtn = document.getElementById("closeTableBtn");
+      const addRowBtn = document.getElementById("addRowBtn");
+
+      // Table state
+      let tableItems = [];
+
+      // Helpers for table
+      function toNumber(v, fallback = 0) {
+        const n =
+          typeof v === "number" ? v : parseFloat(String(v ?? "").trim());
+        return Number.isFinite(n) ? n : fallback;
+      }
+
+      function normalizeRow(it) {
+        const row =
+          it && typeof it === "object" && !Array.isArray(it) ? { ...it } : {};
+        row.name = String(row.name ?? "");
+        row.qty = String(row.qty ?? "");
+        row.originalPrice = toNumber(row.originalPrice, 0);
+        row.sellingPrice = toNumber(row.sellingPrice, 0);
+        row.price =
+          row.price ?? (row.sellingPrice ? `₱${row.sellingPrice}` : "");
+        return row;
+      }
+
+      function parseJsonSafe() {
+        try {
+          const v = JSON.parse(jsonInput.value);
+          return Array.isArray(v) ? v.map(normalizeRow) : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function syncJsonFromTable() {
+        jsonInput.value = JSON.stringify(tableItems, null, 2);
+      }
+
+      function renderTable() {
+        tableBody.innerHTML = "";
+
+        tableItems.forEach((row, i) => {
+          const margin =
+            toNumber(row.sellingPrice, 0) - toNumber(row.originalPrice, 0);
+
+          const tr = document.createElement("tr");
+
+          const tdName = document.createElement("td");
+          const tdQty = document.createElement("td");
+          const tdOrig = document.createElement("td");
+          const tdSell = document.createElement("td");
+          const tdMargin = document.createElement("td");
+          const tdAct = document.createElement("td");
+
+          const nameInput = document.createElement("input");
+          nameInput.className = "tableInput";
+          nameInput.value = row.name;
+
+          const qtyInput = document.createElement("input");
+          qtyInput.className = "tableInput";
+          qtyInput.value = row.qty;
+
+          tdOrig.className = "readonlyCell";
+          tdOrig.textContent = String(row.originalPrice);
+
+          const sellInput = document.createElement("input");
+          sellInput.className = "tableInput";
+          sellInput.type = "number";
+          sellInput.step = "any";
+          sellInput.value = String(row.sellingPrice);
+
+          tdMargin.className = "readonlyCell";
+          tdMargin.textContent = `₱${margin}`;
+
+          const actWrap = document.createElement("div");
+          actWrap.className = "miniActions";
+
+          const dupBtn = document.createElement("button");
+          dupBtn.type = "button";
+          dupBtn.textContent = "Duplicate";
+          dupBtn.addEventListener("click", () => duplicateRow(i));
+
+          const delBtn = document.createElement("button");
+          delBtn.type = "button";
+          delBtn.textContent = "Delete";
+          delBtn.addEventListener("click", () => deleteRow(i));
+
+          actWrap.appendChild(dupBtn);
+          actWrap.appendChild(delBtn);
+
+          tdAct.appendChild(actWrap);
+
+          tdName.appendChild(nameInput);
+          tdQty.appendChild(qtyInput);
+          tdSell.appendChild(sellInput);
+
+          tr.appendChild(tdName);
+          tr.appendChild(tdQty);
+          tr.appendChild(tdOrig);
+          tr.appendChild(tdSell);
+          tr.appendChild(tdMargin);
+          tr.appendChild(tdAct);
+
+          nameInput.addEventListener("input", () => {
+            row.name = nameInput.value;
+            syncJsonFromTable();
+            generateSVG();
+          });
+
+          qtyInput.addEventListener("input", () => {
+            row.qty = qtyInput.value;
+            syncJsonFromTable();
+            generateSVG();
+          });
+
+          sellInput.addEventListener("input", () => {
+            row.sellingPrice = toNumber(sellInput.value, 0);
+            row.price = row.sellingPrice ? `₱${row.sellingPrice}` : "";
+
+            // update only the margin cell (no rerender, focus stays)
+            const margin =
+              toNumber(row.sellingPrice, 0) - toNumber(row.originalPrice, 0);
+            tdMargin.textContent = `₱${margin}`;
+
+            syncJsonFromTable();
+            generateSVG();
+          });
+
+          tableBody.appendChild(tr);
+        });
+      }
+
+      function openTableEditor() {
+        tableItems = parseJsonSafe();
+        renderTable();
+        tableModal.classList.add("open");
+        tableModal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeTableEditor() {
+        tableModal.classList.remove("open");
+        tableModal.setAttribute("aria-hidden", "true");
+      }
+
+      function addRow() {
+        tableItems.push(
+          normalizeRow({
+            name: "",
+            qty: "",
+            price: "",
+            originalPrice: 0,
+            sellingPrice: 0,
+          })
+        );
+        syncJsonFromTable();
+        renderTable();
+        generateSVG();
+      }
+
+      function deleteRow(i) {
+        tableItems.splice(i, 1);
+        syncJsonFromTable();
+        renderTable();
+        generateSVG();
+      }
+
+      function duplicateRow(i) {
+        tableItems.splice(i + 1, 0, normalizeRow({ ...tableItems[i] }));
+        syncJsonFromTable();
+        renderTable();
+        generateSVG();
+      }
+
+      // Close modal when clicking backdrop
+      tableModal.addEventListener("click", (e) => {
+        if (e.target === tableModal) closeTableEditor();
+      });
+      // Esc closes modal
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && tableModal.classList.contains("open")) {
+          closeTableEditor();
+        }
+      });
+
+      closeTableBtn.addEventListener("click", closeTableEditor);
+      addRowBtn.addEventListener("click", addRow);
+
+      // ===== Templates (updated: include name + original/selling) =====
       const TEMPLATES = {
         mlbb: {
           defaultData: [
-            { qty: "WDP", price: "₱87" },
-            { qty: "Normal\nStarlight", price: "₱237" },
-            { qty: "Starlight\nPlus", price: "₱583" },
-            { qty: "56", price: "₱44" },
-            { qty: "168", price: "₱132" },
-            { qty: "223", price: "₱176" },
-            { qty: "279", price: "₱220" },
-            { qty: "336", price: "₱264" },
-            { qty: "448", price: "₱351" },
-            { qty: "570", price: "₱439" },
-            { qty: "626", price: "₱483" },
-            { qty: "682", price: "₱527" },
-            { qty: "738", price: "₱571" },
-            { qty: "793", price: "₱615" },
-            { qty: "849", price: "₱659" },
-            { qty: "906", price: "₱703" },
-            { qty: "1,018", price: "₱791" },
-            { qty: "1,163", price: "₱878" },
-            { qty: "1,733", price: "₱1,318" },
-            { qty: "2,398", price: "₱1,784" },
-            { qty: "3,561", price: "₱2,663" },
+            {
+              name: "Weekly Diamond Pass",
+              qty: "Weekly Diamond Pass",
+              price: "₱94",
+              originalPrice: 91,
+              sellingPrice: 94,
+            },
+            {
+              name: "WDP",
+              qty: "WDP",
+              price: "₱87",
+              originalPrice: 85,
+              sellingPrice: 87,
+            },
+            {
+              name: "Normal Starlight",
+              qty: "Normal\nStarlight",
+              price: "₱237",
+              originalPrice: 230,
+              sellingPrice: 237,
+            },
+            {
+              name: "Starlight Plus",
+              qty: "Starlight\nPlus",
+              price: "₱583",
+              originalPrice: 560,
+              sellingPrice: 583,
+            },
+            {
+              name: "56",
+              qty: "56",
+              price: "₱44",
+              originalPrice: 42,
+              sellingPrice: 44,
+            },
+            {
+              name: "168",
+              qty: "168",
+              price: "₱132",
+              originalPrice: 126,
+              sellingPrice: 132,
+            },
           ],
           settings: {
             layoutMode: "two",
@@ -973,8 +1364,9 @@
             priceOffsetY: 0,
             priceAnchor: "auto",
 
-            // ✅ Icon defaults (upload-driven; upload file to actually show)
             iconEnabled: "on",
+            iconMode: "global",
+            perFallbackToGlobal: "on",
             iconPlacement: "outside",
             iconSize: 26,
             iconPad: 12,
@@ -985,15 +1377,36 @@
             outlineMode: "none",
           },
         },
-
         valorant: {
           defaultData: [
-            { qty: "475 Points", price: "₱194" },
-            { qty: "1000 Points", price: "₱388" },
-            { qty: "2050 Points", price: "₱778" },
-            { qty: "3650 Points", price: "₱1,362" },
-            { qty: "5350 Points", price: "₱1,946" },
-            { qty: "11000 Points", price: "₱3,892" },
+            {
+              name: "475 Points",
+              qty: "475 Points",
+              price: "₱194",
+              originalPrice: 180,
+              sellingPrice: 194,
+            },
+            {
+              name: "1000 Points",
+              qty: "1000 Points",
+              price: "₱388",
+              originalPrice: 360,
+              sellingPrice: 388,
+            },
+            {
+              name: "2050 Points",
+              qty: "2050 Points",
+              price: "₱778",
+              originalPrice: 740,
+              sellingPrice: 778,
+            },
+            {
+              name: "3650 Points",
+              qty: "3650 Points",
+              price: "₱1,362",
+              originalPrice: 1300,
+              sellingPrice: 1362,
+            },
           ],
           settings: {
             layoutMode: "one",
@@ -1037,6 +1450,8 @@
             priceAnchor: "auto",
 
             iconEnabled: "off",
+            iconMode: "global",
+            perFallbackToGlobal: "on",
             iconPlacement: "inside",
             iconSize: 26,
             iconPad: 12,
@@ -1047,15 +1462,29 @@
             outlineMode: "none",
           },
         },
-
         hok: {
           defaultData: [
-            { qty: "60", price: "₱??" },
-            { qty: "300", price: "₱??" },
-            { qty: "680", price: "₱??" },
-            { qty: "1280", price: "₱??" },
-            { qty: "3280", price: "₱??" },
-            { qty: "6480", price: "₱??" },
+            {
+              name: "60",
+              qty: "60",
+              price: "₱0",
+              originalPrice: 0,
+              sellingPrice: 0,
+            },
+            {
+              name: "300",
+              qty: "300",
+              price: "₱0",
+              originalPrice: 0,
+              sellingPrice: 0,
+            },
+            {
+              name: "680",
+              qty: "680",
+              price: "₱0",
+              originalPrice: 0,
+              sellingPrice: 0,
+            },
           ],
           settings: {
             layoutMode: "two",
@@ -1099,6 +1528,8 @@
             priceAnchor: "auto",
 
             iconEnabled: "on",
+            iconMode: "global",
+            perFallbackToGlobal: "on",
             iconPlacement: "inside",
             iconSize: 26,
             iconPad: 12,
@@ -1153,12 +1584,10 @@
         return pref && pref !== "auto" ? pref : fallback;
       }
 
-      // split qty into 2 lines
       function splitQtyTwoLine(raw) {
         const s = String(raw ?? "").trim();
         if (!s) return { top: "", bottom: "" };
 
-        // explicit newline split wins
         if (s.includes("\n")) {
           const parts = s
             .split("\n")
@@ -1167,11 +1596,9 @@
           if (parts.length >= 2) {
             return { top: parts[0], bottom: parts.slice(1).join("\n") };
           }
-          // only 1 real part -> no split
           return { top: s.replace(/\n/g, " ").trim(), bottom: "" };
         }
 
-        // auto split on last space (ONLY if it truly has 2 parts)
         const idx = s.lastIndexOf(" ");
         if (idx <= 0) return { top: s, bottom: "" };
 
@@ -1182,22 +1609,148 @@
         return { top, bottom };
       }
 
-      function buildIconDefs(cfg) {
-        if (!cfg.iconEnabled || !cfg.iconDataUrl) return "";
+      function updatePerIconVisibility() {
+        const show =
+          iconEnabledSelect.value === "on" && iconModeSelect.value === "per";
+        perIconWrap.style.display = show ? "block" : "none";
+      }
 
-        // Put the raster icon into a symbol once
-        // width/height here are "1" and the <use> scales it via width/height
-        return `
-  <defs>
+      function syncPerIconUI(items) {
+        const active =
+          iconEnabledSelect.value === "on" && iconModeSelect.value === "per";
+        if (!active) return;
+
+        perIconList.innerHTML = "";
+
+        items.forEach((it, idx) => {
+          const row = document.createElement("div");
+          row.style.display = "grid";
+          row.style.gridTemplateColumns = "1fr 1fr";
+          row.style.gap = "10px";
+          row.style.alignItems = "center";
+
+          const left = document.createElement("div");
+          left.className = "pill";
+          left.style.justifyContent = "space-between";
+          left.style.gap = "10px";
+          left.style.width = "100%";
+          left.innerHTML = `<span>${escXml(
+            it.qty ?? ""
+          )}</span><span style="opacity:.8">${escXml(it.price ?? "")}</span>`;
+
+          const right = document.createElement("div");
+          right.className = "field";
+
+          const file = document.createElement("input");
+          file.type = "file";
+          file.accept = "image/*";
+          file.dataset.index = String(idx);
+
+          file.addEventListener("change", (e) => {
+            const input = e.target;
+            const i = parseInt(input.dataset.index, 10);
+            const f = input.files && input.files[0];
+
+            if (!f) {
+              perPillIconMap.delete(i);
+              generateSVG();
+              return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = () => {
+              perPillIconMap.set(i, String(reader.result || ""));
+              generateSVG();
+            };
+            reader.readAsDataURL(f);
+          });
+
+          const smallHint = document.createElement("div");
+          smallHint.className = "hint";
+          smallHint.style.marginTop = "6px";
+          smallHint.textContent = perPillIconMap.has(idx)
+            ? "✅ Per-pill icon set"
+            : "No per-pill icon";
+
+          right.appendChild(file);
+          right.appendChild(smallHint);
+
+          row.appendChild(left);
+          row.appendChild(right);
+
+          perIconList.appendChild(row);
+        });
+      }
+
+      clearPerIconsBtn.addEventListener("click", () => {
+        perPillIconMap.clear();
+        generateSVG();
+      });
+
+      // Resolve which icon URL a pill should use
+      function resolvePillIconUrl(cfg, item, index) {
+        if (!cfg.iconEnabled) return "";
+        if (cfg.iconMode === "global") return cfg.iconDataUrl || "";
+
+        const per = perPillIconMap.get(index) || item._iconDataUrl || "";
+        if (per) return per;
+
+        const fallbackOn = cfg.perFallbackToGlobal === true;
+        if (fallbackOn && cfg.iconDataUrl) return cfg.iconDataUrl;
+
+        return "";
+      }
+
+      function buildIconDefs(cfg, items) {
+        if (!cfg.iconEnabled) return "";
+
+        const symbols = [];
+        if (cfg.iconDataUrl) {
+          symbols.push(`
     <symbol id="iconSymbol" viewBox="0 0 1 1" overflow="visible">
       <image x="0" y="0" width="1" height="1" href="${cfg.iconDataUrl}" preserveAspectRatio="xMidYMid meet" />
-    </symbol>
+    </symbol>`);
+        }
+
+        if (cfg.iconMode === "per") {
+          const seen = new Map();
+          let n = 0;
+
+          (items || []).forEach((it) => {
+            const url = it._resolvedIconUrl;
+            if (!url) return;
+
+            if (cfg.iconDataUrl && url === cfg.iconDataUrl) {
+              it._iconSymbolId = "iconSymbol";
+              return;
+            }
+
+            if (!seen.has(url)) {
+              const id = `iconSymbol_${n++}`;
+              seen.set(url, id);
+              symbols.push(`
+    <symbol id="${id}" viewBox="0 0 1 1" overflow="visible">
+      <image x="0" y="0" width="1" height="1" href="${url}" preserveAspectRatio="xMidYMid meet" />
+    </symbol>`);
+            }
+            it._iconSymbolId = seen.get(url);
+          });
+        }
+
+        if (!symbols.length) return "";
+        return `
+  <defs>${symbols.join("\n")}
   </defs>`;
       }
 
       function applyTemplate(templateKey) {
         const tpl = TEMPLATES[templateKey];
         if (!tpl) return;
+
+        // Reset icon state when switching templates
+        uploadedIconDataUrl = "";
+        iconUploadInput.value = "";
+        perPillIconMap.clear();
 
         jsonInput.value = JSON.stringify(tpl.defaultData, null, 2);
         const s = tpl.settings;
@@ -1243,8 +1796,9 @@
         priceOffsetYInput.value = s.priceOffsetY ?? 0;
         priceAnchorSelect.value = s.priceAnchor ?? "auto";
 
-        // ✅ icon defaults
         iconEnabledSelect.value = s.iconEnabled ?? "off";
+        iconModeSelect.value = s.iconMode ?? "global";
+        perFallbackToGlobalSelect.value = s.perFallbackToGlobal ?? "on";
         iconPlacementSelect.value = s.iconPlacement ?? "inside";
         iconSizeInput.value = s.iconSize ?? 26;
         iconPadInput.value = s.iconPad ?? 12;
@@ -1255,6 +1809,7 @@
         outlineModeSelect.value = s.outlineMode ?? "none";
 
         loadGoogleFont();
+        updatePerIconVisibility();
         generateSVG();
       }
 
@@ -1293,10 +1848,9 @@
         qtyLineGap,
         qtyBottomScale,
 
-        // ✅ icon (NEW)
         iconEnabled,
         iconPlacement,
-        iconDataUrl,
+        iconSymbolId,
         iconSize,
         iconPad,
         iconGap,
@@ -1329,10 +1883,9 @@
           rightAnchorDefault = "middle";
         }
 
-        // ✅ icon positioning + text clearance
-        const hasIcon = !!iconEnabled && !!iconDataUrl && (iconSize || 0) > 0;
+        const hasIcon = !!iconEnabled && !!iconSymbolId && (iconSize || 0) > 0;
         const placeOutside = hasIcon && iconPlacement === "outside";
-        const outsidePeek = 0.45; // % of icon size that sticks out to the left
+        const outsidePeek = 0.45;
 
         if (hasIcon) {
           const insideShift = (iconPad || 0) + iconSize + (iconGap || 0);
@@ -1366,23 +1919,17 @@
           ? `stroke="${outlineColor}" stroke-width="${outlineW}"`
           : "";
 
-        // icon SVG element
         let iconSvg = "";
         if (hasIcon) {
-          const cy = cyDefault;
-          const outsidePeek = 0.45;
-          const placeOutside = hasIcon && iconPlacement === "outside";
-
           const baseX = placeOutside
             ? x - iconSize * outsidePeek + (iconPad || 0)
             : x + (iconPad || 0);
 
           const ix = baseX + (iconOffsetX || 0);
-          const iy = cy - iconSize / 2 + (iconOffsetY || 0);
+          const iy = cyDefault - iconSize / 2 + (iconOffsetY || 0);
 
-          // IMPORTANT: use <use> so the base64 isn't duplicated per row
           iconSvg = `
-    <use href="#iconSymbol" x="${ix}" y="${iy}" width="${iconSize}" height="${iconSize}" />
+    <use href="#${iconSymbolId}" x="${ix}" y="${iy}" width="${iconSize}" height="${iconSize}" />
   `;
         }
 
@@ -1419,7 +1966,6 @@
           )}</text>
   `;
         } else {
-          // if two-line is ON but there's nothing to split, show single-line as-is
           qtyTextSvg = `
     <text x="${leftTextX}" y="${leftTextY}"
       fill="${textColor}" font-size="${fontSize}" font-family="${fontName}"
@@ -1449,7 +1995,6 @@
 `;
       }
 
-      // left bleed so "outside" icons don't get cut off
       function computeLeftBleed(cfg) {
         if (!cfg.iconEnabled) return 0;
         if (cfg.iconPlacement !== "outside") return 0;
@@ -1500,7 +2045,7 @@
 
             iconEnabled: cfg.iconEnabled,
             iconPlacement: cfg.iconPlacement,
-            iconDataUrl: cfg.iconDataUrl,
+            iconSymbolId: item._iconSymbolId || "",
             iconSize: cfg.iconSize,
             iconPad: cfg.iconPad,
             iconGap: cfg.iconGap,
@@ -1548,7 +2093,7 @@
 
             iconEnabled: cfg.iconEnabled,
             iconPlacement: cfg.iconPlacement,
-            iconDataUrl: cfg.iconDataUrl,
+            iconSymbolId: item._iconSymbolId || "",
             iconSize: cfg.iconSize,
             iconPad: cfg.iconPad,
             iconGap: cfg.iconGap,
@@ -1565,7 +2110,8 @@
         const leftBleed = computeLeftBleed(cfg);
         const baseW = cfg.pillW * 2 + cfg.colSpacing;
         const svgW = baseW + leftBleed;
-        const defs = buildIconDefs(cfg);
+
+        const defs = buildIconDefs(cfg, items);
 
         const leftCount = Math.ceil(items.length / 2);
         const svgH = leftCount * cfg.rowSpacing;
@@ -1586,7 +2132,9 @@
         const baseW = cfg.pillW;
         const svgW = baseW + leftBleed;
         const svgH = items.length * cfg.rowSpacing;
-        const defs = buildIconDefs(cfg);
+
+        const defs = buildIconDefs(cfg, items);
+
         let svg = `<svg width="${svgW}" height="${svgH}"
     viewBox="${-leftBleed} 0 ${svgW} ${svgH}"
     xmlns="http://www.w3.org/2000/svg">
@@ -1633,7 +2181,7 @@
 
             iconEnabled: cfg.iconEnabled,
             iconPlacement: cfg.iconPlacement,
-            iconDataUrl: cfg.iconDataUrl,
+            iconSymbolId: item._iconSymbolId || "",
             iconSize: cfg.iconSize,
             iconPad: cfg.iconPad,
             iconGap: cfg.iconGap,
@@ -1646,14 +2194,15 @@
         return svg;
       }
 
-      // Tiered: featured pill centered, same size, with its own text settings
       function renderTiered(items, cfg) {
         const leftBleed = computeLeftBleed(cfg);
         const baseW = cfg.pillW * 2 + cfg.colSpacing;
         const svgW = baseW + leftBleed;
-        const defs = buildIconDefs(cfg);
+
+        const defs = buildIconDefs(cfg, items);
+
         if (!items || items.length === 0) {
-          return `<svg width="${svgW}" height="1" viewBox="${-leftBleed} 0 ${svgW} 1" xmlns="http://wwwwww.w3.org/2000/svg"></svg>`;
+          return `<svg width="${svgW}" height="1" viewBox="${-leftBleed} 0 ${svgW} 1" xmlns="http://www.w3.org/2000/svg"></svg>`;
         }
 
         const featured = items[0];
@@ -1714,7 +2263,7 @@
 
           iconEnabled: cfg.iconEnabled,
           iconPlacement: cfg.iconPlacement,
-          iconDataUrl: cfg.iconDataUrl,
+          iconSymbolId: featured._iconSymbolId || "",
           iconSize: cfg.iconSize,
           iconPad: cfg.iconPad,
           iconGap: cfg.iconGap,
@@ -1728,18 +2277,19 @@
       }
 
       function generateSVG() {
-        let items;
+        let rawItems;
         try {
-          items = JSON.parse(jsonInput.value);
+          rawItems = JSON.parse(jsonInput.value);
         } catch {
           svgContainer.innerHTML = `<div class="error">Invalid JSON!</div>`;
           previewSize.textContent = "—";
           itemCount.textContent = "—";
+          updatePerIconVisibility();
           return;
         }
 
         const limit = parseInt(rowLimitInput.value, 10);
-        if (!isNaN(limit) && limit > 0) items = items.slice(0, limit);
+        if (!isNaN(limit) && limit > 0) rawItems = rawItems.slice(0, limit);
 
         const cfg = {
           layoutMode: layoutModeSelect.value,
@@ -1786,9 +2336,10 @@
           fPriceOffsetY: parseFloat(fPriceOffsetYInput.value) || 0,
           fPriceAnchorPref: fPriceAnchorSelect.value,
 
-          // ✅ icon cfg
           iconEnabled: iconEnabledSelect.value === "on",
-          iconPlacement: iconPlacementSelect.value, // inside | outside
+          iconMode: iconModeSelect.value,
+          perFallbackToGlobal: perFallbackToGlobalSelect.value === "on",
+          iconPlacement: iconPlacementSelect.value,
           iconDataUrl: uploadedIconDataUrl,
           iconSize: parseFloat(iconSizeInput.value) || 0,
           iconPad: parseFloat(iconPadInput.value) || 0,
@@ -1804,6 +2355,24 @@
           outlineColor: outlineColorInput.value,
           outlineW: parseFloat(outlineWInput.value),
         };
+
+        // Normalize to ensure original/selling exist; keep existing qty/price if provided
+        const items = rawItems.map((it, idx) => {
+          const base = normalizeRow(it);
+          const perIcon = perPillIconMap.get(idx) || "";
+          const item2 = { ...base, _iconDataUrl: perIcon, _iconSymbolId: "" };
+          item2._resolvedIconUrl = resolvePillIconUrl(cfg, item2, idx);
+          return item2;
+        });
+
+        if (cfg.iconMode === "global") {
+          items.forEach((it) => {
+            it._iconSymbolId = cfg.iconDataUrl ? "iconSymbol" : "";
+          });
+        }
+
+        updatePerIconVisibility();
+        syncPerIconUI(items);
 
         let svg;
         if (cfg.layoutMode === "one") svg = renderOneColumn(items, cfg);
@@ -1877,7 +2446,7 @@
         img.src = url;
       }
 
-      // ✅ Upload icon → base64
+      // Upload GLOBAL icon → base64
       iconUploadInput.addEventListener("change", (e) => {
         const file = e.target.files && e.target.files[0];
         if (!file) {
@@ -1899,6 +2468,15 @@
       );
       fontFamilySelect.addEventListener("change", () => {
         loadGoogleFont();
+        generateSVG();
+      });
+
+      iconEnabledSelect.addEventListener("input", () => {
+        updatePerIconVisibility();
+        generateSVG();
+      });
+      iconModeSelect.addEventListener("input", () => {
+        updatePerIconVisibility();
         generateSVG();
       });
 
@@ -1939,8 +2517,7 @@
         priceOffsetYInput,
         priceAnchorSelect,
 
-        // ✅ icon inputs (NEW)
-        iconEnabledSelect,
+        perFallbackToGlobalSelect,
         iconPlacementSelect,
         iconSizeInput,
         iconPadInput,
