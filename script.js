@@ -18,7 +18,9 @@ const skip = [
 const productsMap = new Map();
 
 document
-  .querySelectorAll(".row-category .col-sm-4.col-6.d-flex")
+  .querySelectorAll(
+    ".row .col-sm-4.col-6.d-flex, .row-category .col-sm-4.col-6.d-flex"
+  )
   .forEach((item) => {
     const nameEl = item.querySelector(".product-name");
     const priceEl = item.querySelector(".currency-idr1");
@@ -36,8 +38,10 @@ document
     const price = parsePrice(priceRaw);
     const sellingPrice = Math.round(price * 1.03);
 
-    let cleaned = name.replace(/Diamonds\s*\([^)]*\)/, "").replace(/\s*\(\d+\s*Diamonds\)/gi, "").trim();
-
+    let cleaned = name
+      .replace(/Diamonds\s*\([^)]*\)/, "")
+      .replace(/\s*\(\d+\s*Diamonds\)/gi, "")
+      .trim();
 
     if (price > 40) {
       productsMap.set(name, {
