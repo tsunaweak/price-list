@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MLBB Receipt Generator</title>
+
+    <style>
+      :root {
+        --bg: #071a24;
+        --page: #031018;
+        --text: #eaf4f8;
+        --muted: #b7c8d1;
+        --green: #25d36a;
+      }
+      * {
+        box-sizing: border-box;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial,
+          sans-serif;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--page);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        color: var(--text);
+      }
+
+      /* Simple "bootstrap-ish" helpers so your snippet classes work */
+      .col-lg-8 {
+        width: 100%;
+      }
+      .p-0 {
+        padding: 0 !important;
+      }
+      .mt-4 {
+        margin-top: 1.5rem !important;
+      }
+      .text-white {
+        color: var(--text) !important;
+      }
+      .text-norm {
+        font-size: 14px;
+        font-weight: 400;
+        letter-spacing: 0px;
+        border-radius: 7px;
+        margin-top: 0;
+      }
+      .break-words {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      /* Controls panel */
+      .panel {
+        width: min(920px, 100%);
+        background: rgba(7, 26, 36, 0.65);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 14px;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+        margin-bottom: 14px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0 0 6px 0;
+      }
+      input,
+      select {
+        width: 100%;
+        background: #03131b;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text);
+        padding: 10px 10px;
+        outline: none;
+      }
+      button {
+        margin-top: 10px;
+        padding: 10px 12px;
+        border: 0;
+        cursor: pointer;
+        font-weight: 800;
+        background: var(--green);
+        color: #062016;
+      }
+      .btn-secondary {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        font-weight: 800;
+        margin-left: 8px;
+      }
+      .msg {
+        margin-top: 10px;
+        color: #ffb4b4;
+        font-size: 13px;
+        display: none;
+      }
+
+      /* Receipt wrapper */
+      .receipt-wrap {
+        width: min(420px, 100%);
+      }
+
+      /* Receipt card background like your screenshot */
+      .receipt {
+        width: 100%;
+        background: var(--bg);
+        padding: 22px 26px;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+      }
+
+      .top-ok {
+        font-size: 14px;
+        font-weight: 400;
+        letter-spacing: 0px;
+        border-radius: 7px;
+        color: #04b962 !important;
+        margin: 0;
+        padding: 0;
+      }
+      .top-sub {
+        font-size: 12px;
+        font-weight: 400;
+        color: white;
+        letter-spacing: 0px !important;
+        margin: 0px;
+      }
+
+      /* Your snippet structure styling */
+      .usrr {
+        width: 100%;
+      }
+      .userdetail {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: 12px 18px;
+        align-items: start;
+        max-width: 720px;
+      }
+      .Nickname {
+        color: var(--muted);
+        opacity: 1;
+      }
+      .idcuy p,
+      .userdetail p {
+        margin: 0;
+      }
+
+      /* Download button */
+      #downloadBtn {
+        display: none;
+        margin-top: 14px;
+        padding: 10px 14px;
+        background: var(--green);
+        color: #062016;
+        font-weight: 800;
+        border: 0;
+        cursor: pointer;
+      }
+
+      @media (max-width: 780px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .userdetail {
+          grid-template-columns: 110px 1fr;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div style="width: min(920px, 100%)">
+      <!-- Controls -->
+      <div class="panel">
+        <div class="grid">
+          <div>
+            <label for="userId">User ID</label>
+            <input id="userId" value="1050443054" inputmode="numeric" />
+          </div>
+          <div>
+            <label for="zoneId">Zone ID</label>
+            <input id="zoneId" value="11088" inputmode="numeric" />
+          </div>
+          <div>
+            <label for="pkg">Package</label>
+            <select id="pkg">
+              <option value="5|5|0">5 Diamonds ( 5 + 0 )</option>
+              <option value="11|10|1">11 Diamonds ( 10 + 1 )</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="gen">Generate receipt</button>
+        <button id="reset" class="btn-secondary" type="button">Reset</button>
+        <div id="msg" class="msg"></div>
+      </div>
+
+      <!-- Receipt -->
+      <div class="receipt-wrap">
+        <div class="receipt" id="receipt" style="display: none">
+          <p class="top-ok">Transaction created</p>
+          <p class="top-sub">Transaction successfully created</p>
+
+          <!-- APPLYING YOUR PROVIDED HTML (with dynamic IDs injected) -->
+          <div class="col-lg-8 p-0">
+            <p
+              class=""
+              style="
+                font-size: 20px;
+                font-weight: 500;
+                margin-bottom: 0;
+                padding: 0;
+              "
+              id="regionTitle"
+            >
+              MLBB PH
+            </p>
+            <p class="text-norm" id="itemLine">
+              1x qty 5 Diamonds ( 5 + 0 Bonus )
+            </p>
+
+            <div class="usrr">
+              <div class="userdetail mt-4">
+                <div class="Nickname text-white text-norm">Nickname</div>
+                <div class="text-norm">
+                  <p class="break-words" id="nicknameVal">Hirokai</p>
+                </div>
+
+                <div class="Nickname text-white text-norm">ID</div>
+                <div class="idcuy text-norm">
+                  <p id="idVal">1477600681 (14309)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button id="downloadBtn">Download Receipt</button>
+      </div>
+    </div>
+
+    <!-- html2canvas for download -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      function showError(text) {
+        $("msg").style.display = "block";
+        $("msg").textContent = text;
+      }
+      function clearError() {
+        $("msg").style.display = "none";
+        $("msg").textContent = "";
+      }
+
+      function buildItemLine(pkgValue) {
+        const [displayQty, base, bonus] = pkgValue
+          .split("|")
+          .map((s) => s.trim());
+        return `1x qty ${displayQty} Diamonds ( ${base} + ${bonus} Bonus )`;
+      }
+
+      // Flexible nickname extraction for different API response shapes
+      function extractNickname(json) {
+        if (!json || typeof json !== "object") return null;
+        return (
+          json.nickname ??
+          json.name ??
+          json.ign ??
+          json?.data?.nickname ??
+          json?.data?.name ??
+          json?.data?.ign ??
+          json?.result?.nickname ??
+          json?.result?.name ??
+          json?.result?.ign ??
+          null
+        );
+      }
+
+      async function fetchNickname(userId, zoneId) {
+        const url = `https://api.isan.eu.org/nickname/ml?id=${encodeURIComponent(
+          userId
+        )}&zone=${encodeURIComponent(zoneId)}`;
+        const res = await fetch(url);
+        if (!res.ok)
+          throw new Error(`API error: ${res.status} ${res.statusText}`);
+        const json = await res.json();
+        const nick = extractNickname(json);
+        if (!nick) throw new Error("Nickname not found in API response.");
+        return nick;
+      }
+
+      $("gen").addEventListener("click", async () => {
+        clearError();
+
+        const userId = $("userId").value.trim();
+        const zoneId = $("zoneId").value.trim();
+        const pkg = $("pkg").value;
+
+        if (!userId || !zoneId) {
+          showError("Please enter both User ID and Zone ID.");
+          return;
+        }
+
+        $("receipt").style.display = "block";
+        $("downloadBtn").style.display = "inline-block";
+
+        $("regionTitle").textContent = "MLBB PH";
+        $("itemLine").textContent = buildItemLine(pkg);
+        $("idVal").textContent = `${userId} (${zoneId})`;
+        $("nicknameVal").textContent = "Loading...";
+
+        try {
+          const nick = await fetchNickname(userId, zoneId);
+          $("nicknameVal").textContent = nick;
+        } catch (e) {
+          $("nicknameVal").textContent = "—";
+          showError(e.message || String(e));
+        }
+      });
+
+      $("reset").addEventListener("click", () => {
+        clearError();
+        $("userId").value = "1050443054";
+        $("zoneId").value = "11088";
+        $("pkg").value = "5|5|0";
+        $("receipt").style.display = "none";
+        $("downloadBtn").style.display = "none";
+      });
+
+      $("downloadBtn").addEventListener("click", async () => {
+        clearError();
+        const receiptEl = $("receipt");
+
+        // Render receipt to canvas
+        const canvas = await html2canvas(receiptEl, {
+          backgroundColor: "#071a24",
+          scale: 2,
+        });
+
+        // Make filename nice
+        const userId = $("userId").value.trim() || "user";
+        const zoneId = $("zoneId").value.trim() || "zone";
+        const fileName = `MLBB_${userId}_${zoneId}.png`;
+
+        // Download
+        const link = document.createElement("a");
+        link.download = fileName;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      });
+    </script>
+  </body>
+</html>
