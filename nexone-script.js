@@ -39,7 +39,7 @@ document.querySelectorAll("#productList .card-product").forEach((card) => {
   if (originalPrice < 40) return;
 
   // Optional: +3% selling price
-  const sellingPrice = Math.round(originalPrice * 1.04);
+  const sellingPrice = Math.round(originalPrice * 1.05);
 
   productsMap.set(name, {
     qty: extractQtyFromName(name),
@@ -50,4 +50,6 @@ document.querySelectorAll("#productList .card-product").forEach((card) => {
   });
 });
 
-console.log(JSON.stringify(Array.from(productsMap.values()), null, 2));
+console.log(JSON.stringify(Array.from(productsMap.values())));
+
+

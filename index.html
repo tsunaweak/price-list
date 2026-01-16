@@ -2,88 +2,133 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>MLBB Price Table With Script Display</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MLBB Price Table Generator + Script Library</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
+      :root {
+        --bg: #fafafa;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --accent: #2563eb;
+        --accent2: #1d4ed8;
+        --dark: #0b1220;
+        --dark2: #0f172a;
+        --codeText: #d1d5db;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
       body {
+        margin: 0;
         font-family: Arial, sans-serif;
-        padding: 20px;
-        background: #fafafa;
-        display: flex;
-        gap: 20px;
+        background: var(--bg);
+        color: var(--text);
+        padding: 18px;
       }
 
-      .left {
-        flex: 1;
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 16px;
+        align-items: start;
       }
 
-      .right {
-        width: 420px;
-        background: #1e1e1e;
-        color: #dcdcdc;
-        padding: 15px;
-        border-radius: 8px;
+      @media (max-width: 980px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .right {
+          position: static !important;
+          max-height: none !important;
+        }
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      }
+
+      h2 {
+        margin: 0 0 10px;
+        font-size: 18px;
+      }
+
+      .sub {
+        margin: 0 0 14px;
+        color: var(--muted);
         font-size: 13px;
-        overflow: auto;
-        max-height: 95vh;
-        position: sticky;
-        top: 20px;
       }
 
-      pre {
-        white-space: pre-wrap;
-        word-break: break-word;
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 12px 0 6px;
       }
 
-      #copyBtn {
-        background: #3a86ff;
-        color: white;
+      button {
         border: none;
-        padding: 6px 12px;
         cursor: pointer;
-        border-radius: 4px;
-        margin-bottom: 10px;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 14px;
+        background: var(--accent);
+        color: #fff;
+        transition: 0.15s ease;
       }
-
-      #copyBtn:hover {
-        background: #1d5ed8;
+      button:hover {
+        background: var(--accent2);
+      }
+      button.secondary {
+        background: #111827;
+      }
+      button.secondary:hover {
+        background: #0b1220;
+      }
+      button.ghost {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+      button.ghost:hover {
+        background: #f3f4f6;
       }
 
       textarea {
-        width: 80%;
-        height: 240px;
-        padding: 10px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-        font-family: monospace;
+        width: 100%;
+        min-height: 240px;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        font-size: 13px;
+        background: #fff;
+        resize: vertical;
       }
 
-      #generateBtn,
-      #downloadBtn,
-      #exportCsvBtn {
-        margin: 10px 5px 20px 0;
-        padding: 10px 15px;
-        background: #007bff;
-        color: white;
-        border: none;
-        cursor: pointer;
-        border-radius: 5px;
-        font-size: 14px;
-      }
-
-      #generateBtn:hover,
-      #downloadBtn:hover,
-      #exportCsvBtn:hover {
-        background: #0056b3;
+      .tableWrap {
+        overflow: auto;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        margin-top: 14px;
+        background: #fff;
       }
 
       table {
+        width: 100%;
         border-collapse: collapse;
         font-size: 14px;
-        background: white;
-        margin-top: 20px;
       }
 
       thead tr {
@@ -93,48 +138,147 @@
 
       th,
       td {
-        border: 1px solid #ddd;
-        padding: 8px 10px;
+        border-bottom: 1px solid #eee;
+        padding: 10px 12px;
         text-align: center;
+        white-space: nowrap;
       }
 
       tbody tr:nth-child(even) {
-        background: #fdfdfd;
+        background: #fcfcfc;
       }
-      tbody tr:nth-child(odd) {
-        background: #ffffff;
+
+      .right {
+        background: var(--dark2);
+        color: var(--codeText);
+        border-radius: 12px;
+        padding: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        position: sticky;
+        top: 16px;
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin: 8px 0 10px;
+        flex-wrap: wrap;
+      }
+
+      .tab {
+        padding: 8px 10px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--codeText);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 13px;
+      }
+
+      .tab.active {
+        background: rgba(37, 99, 235, 0.3);
+        border-color: rgba(37, 99, 235, 0.5);
+      }
+
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        font-size: 12.5px;
+        line-height: 1.4;
+        background: var(--dark);
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .rightTop {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .pill {
+        font-size: 12px;
+        color: rgba(209, 213, 219, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 6px 10px;
+        border-radius: 999px;
+      }
+
+      .hint {
+        margin-top: 10px;
+        font-size: 12px;
+        color: rgba(209, 213, 219, 0.8);
       }
     </style>
   </head>
+
   <body>
-    <div class="left">
-      <h2>MLBB Price List Table Generator</h2>
+    <div class="layout">
+      <!-- LEFT: Generator -->
+      <div class="panel">
+        <h2>MLBB Price List Table Generator</h2>
+        <p class="sub">
+          Paste JSON (from any scraper script) → Generate table → Export CSV /
+          Image.
+        </p>
 
-      <textarea id="dataInput">// Paste your JSON here</textarea>
+        <textarea id="dataInput">// Paste your JSON here</textarea>
 
-      <br />
-      <button id="generateBtn">Generate Table</button>
-      <button id="downloadBtn">Download Table as Image</button>
-      <button id="exportCsvBtn">Export CSV</button>
+        <div class="controls">
+          <button id="generateBtn">Generate Table</button>
+          <button id="downloadBtn" class="secondary">Download Table as Image</button>
+          <button id="exportCsvBtn" class="ghost">Export CSV</button>
+          <button id="clearBtn" class="ghost">Clear</button>
+        </div>
 
-      <table id="priceTable">
-        <thead>
-          <tr>
-            <th>ITEM</th>
-            <th>ORIGINAL PRICE</th>
-            <th>SELLING PRICE</th>
-            <th>MARGIN</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+        <div class="tableWrap">
+          <table id="priceTable">
+            <thead>
+              <tr>
+                <th>ITEM</th>
+                <th>ORIGINAL PRICE</th>
+                <th>SELLING PRICE</th>
+                <th>MARGIN</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RIGHT: Script Library -->
+      <div class="right">
+        <div class="rightTop">
+          <div class="pill" id="activeScriptLabel">Script: GamerXtream</div>
+          <button id="copyBtn">Copy Script</button>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" data-script="gamerxtream">GamerXtream</button>
+          <button class="tab" data-script="nexone">Nexone</button>
+        </div>
+
+        <pre id="scriptCode"></pre>
+
+        <div class="hint">
+          Tip: Open the shop page → DevTools Console → paste script → Enter →
+          copy the printed JSON into the left box.
+        </div>
+      </div>
     </div>
 
-    <div class="right">
-      <button id="copyBtn">Copy Script</button>
-
-      <pre id="scriptCode">
-function parsePrice(p) {
+    <script>
+      /***********************
+       * SCRIPT LIBRARY
+       ***********************/
+      const SCRIPT_LIBRARY = {
+        gamerxtream: `function parsePrice(p) {
   return Number(p.replace(/[₱,]/g, "").trim());
 }
 
@@ -174,14 +318,16 @@ document
     const price = parsePrice(priceRaw);
     const sellingPrice = Math.round(price * 1.03);
 
-    let cleaned = name.replace(/Diamonds\s*\([^)]*\)/, "").replace(/\s*\(\d+\s*Diamonds\)/gi, "").trim();
-
+    let cleaned = name
+      .replace(/Diamonds\\s*\\([^)]*\\)/, "")
+      .replace(/\\s*\\(\\d+\\s*Diamonds\\)/gi, "")
+      .trim();
 
     if (price > 40) {
       productsMap.set(name, {
         name,
         qty: cleaned,
-        price: `₱${sellingPrice.toLocaleString("en-PH")}`,
+        price: \`₱\${sellingPrice.toLocaleString("en-PH")}\`,
         originalPrice: price,
         sellingPrice: sellingPrice,
       });
@@ -190,47 +336,142 @@ document
 
 const products = Array.from(productsMap.values());
 
-console.log(JSON.stringify(products));
+console.log(JSON.stringify(products));`,
 
-;
-      </pre>
-    </div>
+        // ✅ Added Nexone script exactly as you requested
+        nexone: `function parsePrice(p) {
+  return Number(p.replace(/[₱,\\s]/g, "").trim());
+}
 
-    <script>
-      let replace = {
+const replace = {
+  "Weekly Diamond Pass": "WDP",
+};
+
+const skip = [
+  "Weekly Diamond Pass x2",
+  "Weekly Diamond Pass x3",
+  "Weekly Diamond Pass x4",
+  "Weekly Diamond Pass x5",
+];
+
+function extractQtyFromName(name) {
+  const m = name.match(/(\\d[\\d,]*)\\s*Diamonds/i);
+  if (m) return m[1].replace(/,/g, "");
+  return name; // fallback
+}
+
+const productsMap = new Map();
+
+document.querySelectorAll("#productList .card-product").forEach((card) => {
+  const nameEl = card.querySelector(".product-name");
+  const priceEl = card.querySelector(".currency-idr1");
+  if (!nameEl || !priceEl) return;
+
+  let name = nameEl.textContent.trim();
+  if (skip.includes(name)) return;
+
+  name = replace[name] ?? name;
+
+  const priceRaw = priceEl.textContent.trim();
+  const originalPrice = parsePrice(priceRaw);
+  if (!Number.isFinite(originalPrice)) return;
+
+  // ✅ exclude if original price is < 40
+  if (originalPrice < 40) return;
+
+  // Optional: +3% selling price
+  const sellingPrice = Math.round(originalPrice * 1.05);
+
+  productsMap.set(name, {
+    qty: extractQtyFromName(name),
+    name,
+    price: \`₱\${sellingPrice.toLocaleString("en-PH")}\`,
+    originalPrice,
+    sellingPrice,
+  });
+});
+
+console.log(JSON.stringify(Array.from(productsMap.values())));`,
+      };
+
+      const scriptCodeEl = document.getElementById("scriptCode");
+      const activeScriptLabel = document.getElementById("activeScriptLabel");
+      let activeScriptKey = "gamerxtream";
+
+      function setActiveScript(key) {
+        activeScriptKey = key;
+        scriptCodeEl.textContent = SCRIPT_LIBRARY[key] ?? "";
+        activeScriptLabel.textContent =
+          "Script: " + (key === "gamerxtream" ? "GamerXtream" : "Nexone");
+
+        document.querySelectorAll(".tab").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.script === key);
+        });
+      }
+
+      document.querySelectorAll(".tab").forEach((btn) => {
+        btn.addEventListener("click", () => setActiveScript(btn.dataset.script));
+      });
+
+      document.getElementById("copyBtn").addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(scriptCodeEl.textContent);
+          alert("Script copied!");
+        } catch {
+          alert("Copy failed (browser blocked clipboard). Try manual copy.");
+        }
+      });
+
+      /***********************
+       * TABLE GENERATOR
+       ***********************/
+      const replaceTable = {
         "301 Diamonds ( 274 + 27  )": "Normal Starlight (301 Diamonds)",
         "749 Diamonds ( 667 + 82  )": "Starlight Plus (749 Diamonds)",
       };
 
-      let skip = [
+      const skipTable = [
         "Weekly Diamond Pass x2",
         "Weekly Diamond Pass x3",
         "Weekly Diamond Pass x4",
         "Weekly Diamond Pass x5",
       ];
 
+      function safeNumber(v) {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : 0;
+      }
+
       function generateTable() {
-        let tbody = document.querySelector("#priceTable tbody");
+        const tbody = document.querySelector("#priceTable tbody");
         tbody.innerHTML = "";
 
-        let input = document.getElementById("dataInput").value;
+        const input = document.getElementById("dataInput").value.trim();
+        if (!input) return;
 
         try {
-          let data = JSON.parse(input);
+          const data = JSON.parse(input);
 
           data.forEach((item) => {
-            if (skip.includes(item.name)) return;
+            if (!item) return;
 
-            let tr = document.createElement("tr");
+            // supports both {name,...} and {qty,name,...} from scripts
+            const rawName = String(item.name ?? "").trim();
+            if (!rawName) return;
+            if (skipTable.includes(rawName)) return;
+
+            const name = replaceTable[rawName] ?? rawName;
+
+            const original = safeNumber(item.originalPrice);
+            const selling = safeNumber(item.sellingPrice);
+            const margin = selling - original;
+
+            const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td><strong>${replace[item.name] ?? item.name}</strong></td>
-                <td><strong>${item.originalPrice}</strong></td>
-                <td><strong>₱${item.sellingPrice.toLocaleString(
-                  "en-PH"
-                )}</strong></td>
-                <td><strong>${(
-                  item.sellingPrice - item.originalPrice
-                ).toLocaleString("en-PH")}</strong></td>
+              <td><strong>${escapeHtml(name)}</strong></td>
+              <td><strong>${original.toLocaleString("en-PH")}</strong></td>
+              <td><strong>₱${selling.toLocaleString("en-PH")}</strong></td>
+              <td><strong>${margin.toLocaleString("en-PH")}</strong></td>
             `;
             tbody.appendChild(tr);
           });
@@ -239,49 +480,56 @@ console.log(JSON.stringify(products));
         }
       }
 
-      document
-        .getElementById("generateBtn")
-        .addEventListener("click", generateTable);
+      function escapeHtml(str) {
+        return str
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
 
-      document.getElementById("copyBtn").addEventListener("click", () => {
-        const text = document.getElementById("scriptCode").innerText;
-        navigator.clipboard.writeText(text);
-        alert("Script copied!");
+      document.getElementById("generateBtn").addEventListener("click", generateTable);
+
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        document.getElementById("dataInput").value = "";
+        document.querySelector("#priceTable tbody").innerHTML = "";
       });
 
-      /* -------------------------
-          EXPORT CSV FUNCTION
-      -------------------------- */
+      /***********************
+       * EXPORT CSV
+       ***********************/
       function exportCSV() {
-        let input = document.getElementById("dataInput").value;
+        const input = document.getElementById("dataInput").value.trim();
+        if (!input) return alert("No JSON found.");
 
-        let csvRows = [];
+        const csvRows = [];
         csvRows.push(["ITEM", "ORIGINAL PRICE", "SELLING PRICE", "MARGIN"].join(","));
 
         try {
-          let data = JSON.parse(input);
+          const data = JSON.parse(input);
 
           data.forEach((item) => {
-            if (skip.includes(item.name)) return;
+            const rawName = String(item.name ?? "").trim();
+            if (!rawName) return;
+            if (skipTable.includes(rawName)) return;
 
-            const name = replace[item.name] ?? item.name;
-            const original = item.originalPrice;
-            const selling = item.sellingPrice;
+            const name = replaceTable[rawName] ?? rawName;
+
+            const original = safeNumber(item.originalPrice);
+            const selling = safeNumber(item.sellingPrice);
             const margin = selling - original;
 
-            csvRows.push([name, original, selling, margin].join(","));
+            // quote item name to protect commas
+            csvRows.push([`"${name.replaceAll('"', '""')}"`, original, selling, margin].join(","));
           });
 
-          let csvContent = csvRows.join("\n");
-          let blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+          const csvContent = csvRows.join("\n");
+          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 
-          const now = new Date();
-          const mm = String(now.getMonth() + 1).padStart(2, "0");
-          const dd = String(now.getDate()).padStart(2, "0");
-          const yyyy = now.getFullYear();
-          const formattedDate = `${mm}-${dd}-${yyyy}`;
+          const formattedDate = formatDate(new Date());
 
-          let link = document.createElement("a");
+          const link = document.createElement("a");
           link.href = URL.createObjectURL(blob);
           link.download = `MLBB_Price_List_${formattedDate}.csv`;
           link.click();
@@ -290,49 +538,67 @@ console.log(JSON.stringify(products));
         }
       }
 
-      document
-        .getElementById("exportCsvBtn")
-        .addEventListener("click", exportCSV);
+      document.getElementById("exportCsvBtn").addEventListener("click", exportCSV);
 
-      /* -------------------------
-          DOWNLOAD TABLE AS IMAGE
-      -------------------------- */
-      document.getElementById("downloadBtn").addEventListener("click", () => {
-        const table = document.getElementById("priceTable");
-
-        let clone = table.cloneNode(true);
-
-        clone.querySelectorAll("tr").forEach((row) => {
-          row.removeChild(row.children[3]); 
-          row.removeChild(row.children[1]);
-        });
-
-        clone.querySelector("thead tr th:nth-child(2)").innerText = "PRICE";
-
-        let hidden = document.createElement("div");
-        hidden.style.position = "absolute";
-        hidden.style.left = "-9999px";
-        hidden.appendChild(clone);
-        document.body.appendChild(hidden);
-
-        const now = new Date();
+      function formatDate(now) {
         const mm = String(now.getMonth() + 1).padStart(2, "0");
         const dd = String(now.getDate()).padStart(2, "0");
         const yyyy = now.getFullYear();
-        const formattedDate = `${mm}-${dd}-${yyyy}`;
+        return `${mm}-${dd}-${yyyy}`;
+      }
 
-        html2canvas(clone, { scale: 3 })
-          .then((canvas) => {
-            const link = document.createElement("a");
-            link.download = `MLBB_Price_List_${formattedDate}.png`;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-          })
-          .finally(() => {
-            hidden.remove();
+      /***********************
+       * DOWNLOAD TABLE AS IMAGE (ITEM + PRICE ONLY)
+       ***********************/
+      document.getElementById("downloadBtn").addEventListener("click", async () => {
+        const table = document.getElementById("priceTable");
+        const tbody = table.querySelector("tbody");
+        if (!tbody || tbody.children.length === 0) {
+          alert("Generate a table first.");
+          return;
+        }
+
+        // Clone and keep only ITEM + SELLING PRICE
+        const clone = table.cloneNode(true);
+
+        // Remove columns by index (safe way): keep indices [0,2]
+        const keep = new Set([0, 2]);
+
+        clone.querySelectorAll("tr").forEach((row) => {
+          const cells = Array.from(row.children);
+          cells.forEach((cell, idx) => {
+            if (!keep.has(idx)) cell.remove();
           });
+        });
+
+        // Rename header "SELLING PRICE" -> "PRICE"
+        const ths = clone.querySelectorAll("thead th");
+        if (ths[1]) ths[1].textContent = "PRICE";
+
+        const hidden = document.createElement("div");
+        hidden.style.position = "absolute";
+        hidden.style.left = "-9999px";
+        hidden.style.top = "0";
+        hidden.style.background = "#fff";
+        hidden.style.padding = "12px";
+        hidden.appendChild(clone);
+        document.body.appendChild(hidden);
+
+        const formattedDate = formatDate(new Date());
+
+        try {
+          const canvas = await html2canvas(clone, { scale: 3 });
+          const link = document.createElement("a");
+          link.download = `MLBB_Price_List_${formattedDate}.png`;
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        } finally {
+          hidden.remove();
+        }
       });
 
+      // init
+      setActiveScript("gamerxtream");
       generateTable();
     </script>
   </body>
