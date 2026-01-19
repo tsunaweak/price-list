@@ -376,11 +376,8 @@ document.querySelectorAll("#productList .card-product").forEach((card) => {
   const originalPrice = parsePrice(priceRaw);
   if (!Number.isFinite(originalPrice)) return;
 
-  // ✅ exclude if original price is < 40
-  if (originalPrice < 40) return;
-
   // Optional: +3% selling price
-  const sellingPrice = Math.round(originalPrice * 1.05);
+  const sellingPrice = Math.round(originalPrice * 1.04);
 
   productsMap.set(name, {
     qty: extractQtyFromName(name),

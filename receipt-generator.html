@@ -126,7 +126,7 @@
         display: none;
       }
 
-      /* Receipt template (for capture + preview) */
+      /* Receipt template */
       .receipt {
         width: 420px;
         background: var(--bg);
@@ -274,7 +274,7 @@
         color: var(--muted);
       }
 
-      /* HTML preview area (NOT an image) */
+      /* HTML preview (live) */
       .preview-box {
         padding: 10px;
       }
@@ -311,7 +311,7 @@
         color: var(--text);
       }
 
-      /* Modal for full HTML preview */
+      /* Modal */
       .modal {
         position: fixed;
         inset: 0;
@@ -354,7 +354,7 @@
         justify-content: center;
       }
 
-      /* Capture template should be offscreen */
+      /* Offscreen capture template */
       .offscreen {
         position: fixed;
         left: -99999px;
@@ -452,7 +452,6 @@
         <div class="out-grid" id="outGrid"></div>
       </div>
 
-      <!-- Modal for full HTML receipt preview -->
       <div class="modal" id="modal">
         <div class="modal-inner">
           <div class="modal-top">
@@ -463,7 +462,7 @@
         </div>
       </div>
 
-      <!-- Offscreen template used ONLY for html2canvas export -->
+      <!-- Offscreen template -->
       <div class="offscreen">
         <div class="receipt" id="receipt">
           <div class="receipt-header">
@@ -540,10 +539,15 @@
 
       <script>
         const $ = (id) => document.getElementById(id);
-        let stopRequested = false;
 
-        // store generated receipts for Download All
+        let stopRequested = false;
         const generated = []; // [{ userId, zoneId, dataUrl }]
+
+        // IMPORTANT FIX:
+        // Always update ONLY the offscreen template via a stored reference,
+        // never via document.getElementById for receipt fields.
+        const receiptEl = $("receipt");
+        const r$ = (selector) => receiptEl.querySelector(selector);
 
         function showError(text) {
           $("msg").style.display = "block";
@@ -580,10 +584,6 @@
           return `${day} ${month} ${year}, ${hh}:${mm}`;
         }
 
-        // Parse supported formats:
-        // 123 456
-        // 123 (456)
-        // 123(456)
         function parseBatch(text) {
           const lines = text
             .split(/\r?\n/)
@@ -657,7 +657,6 @@
         }
 
         async function captureReceiptToDataUrl() {
-          const receiptEl = $("receipt");
           const canvas = await html2canvas(receiptEl, {
             backgroundColor: "#071a24",
             scale: 2,
@@ -667,32 +666,42 @@
           return canvas.toDataURL("image/png");
         }
 
-        // Create a LIVE HTML receipt preview by cloning the receipt node
+        // FIX: remove all IDs from preview clones so they never hijack getElementById
+        function stripAllIds(root) {
+          if (root.removeAttribute) root.removeAttribute("id");
+          root.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+        }
+
         function createHtmlPreviewNode() {
-          const clone = $("receipt").cloneNode(true);
-          clone.removeAttribute("id");
+          const clone = receiptEl.cloneNode(true);
+          stripAllIds(clone);
           clone.style.display = "block";
           return clone;
         }
 
         async function renderOne({ userId, zoneId, pkg }) {
-          $("regionTitle").textContent = "MLBB PH";
-          $("itemLine").textContent = buildItemLine(pkg);
-          $("idVal").textContent = `${userId} (${zoneId})`;
-          $("dateTimeVal").textContent = formatReceiptDate(new Date());
-          $("txnStatusVal").textContent = "Success";
-          $("payStatusVal").textContent = "Paid";
+          // set values on OFFSCREEN template only
+          r$("#regionTitle").textContent = "MLBB PH";
+          r$("#itemLine").textContent = buildItemLine(pkg);
+          r$("#idVal").textContent = `${userId} (${zoneId})`;
+          r$("#dateTimeVal").textContent = formatReceiptDate(new Date());
+          r$("#txnStatusVal").textContent = "Success";
+          r$("#payStatusVal").textContent = "Paid";
 
-          await waitForImage($("logoImg"));
+          const logo = r$("#logoImg");
+          await waitForImage(logo);
 
-          $("nicknameVal").textContent = "Loading...";
+          r$("#nicknameVal").textContent = "Loading...";
+
+          // IMPORTANT: wait for nickname before cloning preview
           try {
             const nick = await fetchNickname(userId, zoneId);
-            $("nicknameVal").textContent = nick;
+            r$("#nicknameVal").textContent = nick;
           } catch {
-            $("nicknameVal").textContent = "—";
+            r$("#nicknameVal").textContent = "—";
           }
 
+          // next paint (ensures DOM updated before clone/capture)
           await new Promise((r) => requestAnimationFrame(() => r()));
 
           const previewNode = createHtmlPreviewNode();
@@ -721,7 +730,6 @@
           if (e.key === "Escape") closeModal();
         });
 
-        // Add card with HTML preview (not an image)
         function addPreviewCard({ userId, zoneId, previewNode, dataUrl }) {
           const grid = $("outGrid");
 
@@ -741,8 +749,7 @@
 
           scaled.style.cursor = "pointer";
           scaled.addEventListener("click", () => {
-            const fullNode = previewNode.cloneNode(true);
-            openModal(`Preview — ${userId} (${zoneId})`, fullNode);
+            openModal(`Preview — ${userId} (${zoneId})`, previewNode.cloneNode(true));
           });
 
           previewBox.appendChild(scaled);
@@ -759,8 +766,7 @@
           pv.type = "button";
           pv.textContent = "Open Preview";
           pv.addEventListener("click", () => {
-            const fullNode = previewNode.cloneNode(true);
-            openModal(`Preview — ${userId} (${zoneId})`, fullNode);
+            openModal(`Preview — ${userId} (${zoneId})`, previewNode.cloneNode(true));
           });
 
           actions.appendChild(dl);
@@ -771,35 +777,30 @@
           card.appendChild(actions);
 
           grid.appendChild(card);
-
           $("outPanel").style.display = "block";
         }
 
-        // ✅ Download All: triggers a download for each generated receipt (sequential)
         async function downloadAllSequential() {
           if (!generated.length) return;
 
           setDownloadAllEnabled(false);
-          const originalText = $("downloadAll").textContent;
-          $("downloadAll").textContent = "Downloading...";
+          const btn = $("downloadAll");
+          const originalText = btn.textContent;
+          btn.textContent = "Downloading...";
 
           try {
             for (let i = 0; i < generated.length; i++) {
               const { userId, zoneId, dataUrl } = generated[i];
-
-              // Create and click link
               const a = document.createElement("a");
               a.href = dataUrl;
               a.download = `MLBB_${userId}_${zoneId}.png`;
               document.body.appendChild(a);
               a.click();
               a.remove();
-
-              // small delay so browsers don't block multiple downloads
               await new Promise((r) => setTimeout(r, 350));
             }
           } finally {
-            $("downloadAll").textContent = originalText;
+            btn.textContent = originalText;
             setDownloadAllEnabled(true);
           }
         }
@@ -816,7 +817,7 @@
           $("outPanel").style.display = "none";
           closeModal();
 
-          generated.length = 0; // reset storage
+          generated.length = 0;
           setDownloadAllEnabled(false);
 
           const raw = $("batchInput").value || "";
@@ -838,6 +839,7 @@
           const pkg = $("pkg").value;
           showProgress(`Generating 0 / ${items.length}...`);
 
+          // Sequential: each receipt fully finishes before the next begins
           for (let i = 0; i < items.length; i++) {
             if (stopRequested) break;
 
@@ -853,12 +855,9 @@
                 pkg,
               });
 
-              // store for Download All
               generated.push({ userId, zoneId, dataUrl });
-
               addPreviewCard({ userId, zoneId, previewNode, dataUrl });
 
-              // enable Download All after first successful receipt
               if (generated.length === 1) setDownloadAllEnabled(true);
             } catch (e) {
               showError(
@@ -869,9 +868,7 @@
           }
 
           showProgress(
-            stopRequested
-              ? "Stopped."
-              : `Done. Generated ${generated.length} receipt(s).`
+            stopRequested ? "Stopped." : `Done. Generated ${generated.length} receipt(s).`
           );
 
           $("stop").disabled = true;
