@@ -3,7 +3,7 @@ function parsePrice(p) {
 }
 
 const replace = {
-  "Weekly Diamond Pass": "WDP",
+  //"Weekly Diamond Pass": "WDP",
 };
 
 const skip = [
@@ -21,10 +21,17 @@ function extractQtyFromName(name) {
 
 const productsMap = new Map();
 
-document.querySelectorAll("#productList .card-product").forEach((card) => {
+document.querySelectorAll('#productList .card-product').forEach((card) => {
   const nameEl = card.querySelector(".product-name");
   const priceEl = card.querySelector(".currency-idr1");
-  if (!nameEl || !priceEl) return;
+  const inputEl =
+    card.querySelector('input[name="product"][value]') ||
+    card.querySelector('input.radio-nominale[value]');
+
+  if (!nameEl || !priceEl || !inputEl) return;
+
+  const productId = inputEl.value?.trim();
+  if (!productId) return;
 
   let name = nameEl.textContent.trim();
   if (skip.includes(name)) return;
@@ -35,11 +42,12 @@ document.querySelectorAll("#productList .card-product").forEach((card) => {
   const originalPrice = parsePrice(priceRaw);
   if (!Number.isFinite(originalPrice)) return;
 
-
-  // Optional: +3% selling price
+  // Optional: +4% selling price
   const sellingPrice = Math.round(originalPrice * 1.04);
 
-  productsMap.set(name, {
+  // use productId as the key so same names in different categories won't overwrite each other
+  productsMap.set(productId, {
+    productId,
     qty: extractQtyFromName(name),
     name,
     price: `₱${sellingPrice.toLocaleString("en-PH")}`,
