@@ -70,6 +70,14 @@
       // index -> base64 data URL (per-pill)
       const perPillIconMap = new Map();
 
+      const SAVED_TEMPLATES_KEY = "price-list-poster-templates-v1";
+      const SAVED_TEMPLATE_PREFIX = "saved:";
+      const BUILTIN_TEMPLATE_LABELS = {
+        mlbb: "Mobile Legends",
+        valorant: "Valorant",
+        hok: "Honor of Kings",
+      };
+
       const pillFillInput = document.getElementById("pillFill");
       const textColorInput = document.getElementById("textColor");
       const dividerColorInput = document.getElementById("dividerColor");
@@ -82,6 +90,280 @@
       const previewSize = document.getElementById("previewSize");
       const itemCount = document.getElementById("itemCount");
       const modePill = document.getElementById("modePill");
+      const saveTemplateBtn = document.getElementById("saveTemplateBtn");
+
+      const stateControls = [
+        layoutModeSelect,
+        singleDivPctInput,
+        jsonInput,
+        featuredDivPctInput,
+
+        fQtyOffsetXInput,
+        fQtyOffsetYInput,
+        fQtyAnchorSelect,
+        fPriceOffsetXInput,
+        fPriceOffsetYInput,
+        fPriceAnchorSelect,
+
+        qtyTwoLineSelect,
+        qtyLineGapInput,
+        qtyBottomScaleInput,
+
+        rowLimitInput,
+        rowSpacingInput,
+        colSpacingInput,
+        pillWidthInput,
+        pillHeightInput,
+        pillRadiusInput,
+        topPadInput,
+
+        dividerWInput,
+        dividerHInput,
+        dividerRInput,
+        dividerYInput,
+        dividerXPctInput,
+
+        textFontSizeInput,
+        fontFamilySelect,
+        qtyOffsetXInput,
+        qtyOffsetYInput,
+        qtyAnchorSelect,
+        priceOffsetXInput,
+        priceOffsetYInput,
+        priceAnchorSelect,
+
+        iconEnabledSelect,
+        iconModeSelect,
+        perFallbackToGlobalSelect,
+        iconPlacementSelect,
+        iconSizeInput,
+        iconPadInput,
+        iconGapInput,
+        iconOffsetXInput,
+        iconOffsetYInput,
+
+        pillFillInput,
+        textColorInput,
+        dividerColorInput,
+        outlineModeSelect,
+        outlineColorInput,
+        outlineWInput,
+      ];
+
+      function collectCurrentTemplateState() {
+        try {
+          const controls = {};
+          stateControls.forEach((el) => {
+            if (el && el.id) controls[el.id] = el.value;
+          });
+
+          return {
+            version: 1,
+            controls,
+            uploadedIconDataUrl,
+            perPillIcons: Array.from(perPillIconMap.entries()),
+          };
+        } catch (err) {
+          console.warn("Could not collect template state:", err);
+          return null;
+        }
+      }
+
+      function loadSavedTemplates() {
+        try {
+          const raw = localStorage.getItem(SAVED_TEMPLATES_KEY);
+          if (!raw) return [];
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed)) return [];
+          return parsed.filter(
+            (t) =>
+              t &&
+              typeof t === "object" &&
+              typeof t.id === "string" &&
+              typeof t.name === "string" &&
+              t.state &&
+              typeof t.state === "object"
+          );
+        } catch (err) {
+          console.warn("Could not load saved templates:", err);
+          return [];
+        }
+      }
+
+      function persistSavedTemplates(templates) {
+        try {
+          localStorage.setItem(
+            SAVED_TEMPLATES_KEY,
+            JSON.stringify(Array.isArray(templates) ? templates : [])
+          );
+          return true;
+        } catch (err) {
+          console.warn("Could not save templates:", err);
+          return false;
+        }
+      }
+
+      function toTemplateId(name) {
+        const base = String(name || "")
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+        return base || "template";
+      }
+
+      function getSavedTemplateById(id) {
+        if (!id) return null;
+        return loadSavedTemplates().find((t) => t.id === id) || null;
+      }
+
+      function refreshTemplateDropdown(selectedValue) {
+        const wanted = selectedValue || templateSelect.value || "mlbb";
+        const saved = loadSavedTemplates();
+
+        templateSelect.innerHTML = "";
+
+        const builtInGroup = document.createElement("optgroup");
+        builtInGroup.label = "Built-in";
+        Object.keys(TEMPLATES).forEach((key) => {
+          const opt = document.createElement("option");
+          opt.value = key;
+          opt.textContent = BUILTIN_TEMPLATE_LABELS[key] || key;
+          builtInGroup.appendChild(opt);
+        });
+        templateSelect.appendChild(builtInGroup);
+
+        if (saved.length) {
+          const savedGroup = document.createElement("optgroup");
+          savedGroup.label = "Saved";
+          saved.forEach((tpl) => {
+            const opt = document.createElement("option");
+            opt.value = `${SAVED_TEMPLATE_PREFIX}${tpl.id}`;
+            opt.textContent = tpl.name;
+            savedGroup.appendChild(opt);
+          });
+          templateSelect.appendChild(savedGroup);
+        }
+
+        const hasWanted = Array.from(templateSelect.options).some(
+          (opt) => opt.value === wanted
+        );
+        templateSelect.value = hasWanted ? wanted : "mlbb";
+      }
+
+      function applyStateSnapshot(state) {
+        if (!state || typeof state !== "object") return false;
+        if (!state.controls || typeof state.controls !== "object") return false;
+
+        stateControls.forEach((el) => {
+          if (!el || !el.id) return;
+          if (Object.prototype.hasOwnProperty.call(state.controls, el.id)) {
+            el.value = String(state.controls[el.id]);
+          }
+        });
+
+        uploadedIconDataUrl =
+          typeof state.uploadedIconDataUrl === "string"
+            ? state.uploadedIconDataUrl
+            : "";
+        iconUploadInput.value = "";
+
+        perPillIconMap.clear();
+        if (Array.isArray(state.perPillIcons)) {
+          state.perPillIcons.forEach((entry) => {
+            if (!Array.isArray(entry) || entry.length < 2) return;
+            const idx = parseInt(entry[0], 10);
+            const url = String(entry[1] || "");
+            if (Number.isInteger(idx) && url) perPillIconMap.set(idx, url);
+          });
+        }
+
+        loadGoogleFont();
+        updatePerIconVisibility();
+        generateSVG();
+        return true;
+      }
+
+      function applyTemplateSelection(value) {
+        if (!value) return;
+
+        if (value.startsWith(SAVED_TEMPLATE_PREFIX)) {
+          const id = value.slice(SAVED_TEMPLATE_PREFIX.length);
+          const saved = getSavedTemplateById(id);
+          if (!saved || !applyStateSnapshot(saved.state)) {
+            alert("Saved template is missing or invalid.");
+            refreshTemplateDropdown("mlbb");
+            applyTemplate("mlbb");
+            return;
+          }
+          templateSelect.value = value;
+          return;
+        }
+
+        applyTemplate(value);
+      }
+
+      function saveCurrentAsTemplate() {
+        const currentValue = templateSelect.value;
+        const currentSavedId = currentValue.startsWith(SAVED_TEMPLATE_PREFIX)
+          ? currentValue.slice(SAVED_TEMPLATE_PREFIX.length)
+          : "";
+        const currentSavedName = currentValue.startsWith(SAVED_TEMPLATE_PREFIX)
+          ? getSavedTemplateById(
+              currentValue.slice(SAVED_TEMPLATE_PREFIX.length)
+            )?.name || ""
+          : "";
+
+        const input = prompt(
+          "Template name",
+          currentSavedName || "My Template"
+        );
+        if (input === null) return;
+
+        const name = input.trim();
+        if (!name) {
+          alert("Template name is required.");
+          return;
+        }
+
+        const snapshot = collectCurrentTemplateState();
+        if (!snapshot) {
+          alert("Could not collect current config.");
+          return;
+        }
+
+        const id = toTemplateId(name);
+        const saved = loadSavedTemplates();
+        const existing = saved.find((t) => t.id === id);
+        if (
+          existing &&
+          existing.id !== currentSavedId &&
+          !confirm(`Template "${name}" already exists. Overwrite?`)
+        ) {
+          return;
+        }
+
+        const next = existing
+          ? saved.map((t) =>
+              t.id === id
+                ? { ...t, name, state: snapshot, updatedAt: Date.now() }
+                : t
+            )
+          : [
+              ...saved,
+              { id, name, state: snapshot, createdAt: Date.now() },
+            ];
+
+        if (!persistSavedTemplates(next)) {
+          alert("Failed to save template.");
+          return;
+        }
+
+        const selected = `${SAVED_TEMPLATE_PREFIX}${id}`;
+        refreshTemplateDropdown(selected);
+        templateSelect.value = selected;
+        alert(`Template "${name}" saved.`);
+      }
 
       // ===== Table Editor Elements =====
       const tableModal = document.getElementById("tableModal");
@@ -1395,6 +1677,17 @@
         else previewSize.textContent = "—";
       }
 
+      function getTemplateFileStem() {
+        const selected = templateSelect.options[templateSelect.selectedIndex];
+        const raw = (selected && selected.textContent) || templateSelect.value;
+        const stem = String(raw || "template")
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+        return stem || "template";
+      }
+
       function downloadSVG() {
         const svg = document.querySelector("#svgContainer svg");
         if (!svg) return alert("Generate SVG first!");
@@ -1402,7 +1695,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${templateSelect.value}-price-list.svg`;
+        a.download = `${getTemplateFileStem()}-price-list.svg`;
         a.click();
         URL.revokeObjectURL(url);
       }
@@ -1411,36 +1704,126 @@
         const svgElement = document.querySelector("#svgContainer svg");
         if (!svgElement) return alert("Generate SVG first!");
 
-        const svgData = new XMLSerializer().serializeToString(svgElement);
-        const svgBlob = new Blob([svgData], {
-          type: "image/svg+xml;charset=utf-8",
-        });
-        const url = URL.createObjectURL(svgBlob);
+        const run = async () => {
+          try {
+            if (document.fonts && document.fonts.ready) {
+              await document.fonts.ready;
+            }
+          } catch {
+            // Continue export even if font readiness check fails.
+          }
 
-        const img = new Image();
-        img.onload = function () {
-          const canvas = document.createElement("canvas");
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0);
-          URL.revokeObjectURL(url);
+          const saveCanvasAsJpg = (canvas) => {
+            canvas.toBlob(
+              function (blob) {
+                if (!blob) {
+                  alert("Error exporting JPG. Try again.");
+                  return;
+                }
 
-          canvas.toBlob(
-            function (blob) {
-              const link = document.createElement("a");
-              link.href = URL.createObjectURL(blob);
-              link.download = `${templateSelect.value}-price-list.jpg`;
-              link.click();
-            },
-            "image/jpeg",
-            0.95
-          );
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = blobUrl;
+                link.download = `${getTemplateFileStem()}-price-list.jpg`;
+                link.click();
+                URL.revokeObjectURL(blobUrl);
+              },
+              "image/jpeg",
+              0.95
+            );
+          };
+
+          // Prefer SnapDOM capture so JPG matches visible preview text rendering.
+          if (typeof window.snapdom === "function") {
+            try {
+              const rootStyle = getComputedStyle(document.documentElement);
+              const panelTop = rootStyle.getPropertyValue("--panel").trim();
+              const panelBottom = rootStyle.getPropertyValue("--panel2").trim();
+              const bgTop = panelTop || "#15171d";
+              const bgBottom = panelBottom || "#101218";
+              const pad =
+                parseFloat(getComputedStyle(svgContainer).paddingLeft) || 0;
+
+              const captured = await window.snapdom.toCanvas(svgElement, {
+                scale: 1,
+                backgroundColor: "transparent",
+              });
+              if (!captured.width || !captured.height) {
+                throw new Error("Captured canvas is empty.");
+              }
+
+              const canvas = document.createElement("canvas");
+              canvas.width = captured.width + pad * 2;
+              canvas.height = captured.height + pad * 2;
+
+              const ctx = canvas.getContext("2d");
+              const gradient = ctx.createLinearGradient(
+                0,
+                0,
+                0,
+                canvas.height
+              );
+              gradient.addColorStop(0, bgTop);
+              gradient.addColorStop(1, bgBottom);
+              ctx.fillStyle = gradient;
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(captured, pad, pad);
+
+              saveCanvasAsJpg(canvas);
+              return;
+            } catch (err) {
+              console.warn("SnapDOM export failed, using SVG fallback:", err);
+            }
+          }
+
+          // Fallback: rasterize serialized SVG.
+          const svgData = new XMLSerializer().serializeToString(svgElement);
+          const svgBlob = new Blob([svgData], {
+            type: "image/svg+xml;charset=utf-8",
+          });
+          const url = URL.createObjectURL(svgBlob);
+
+          const img = new Image();
+          img.onload = function () {
+            const svgW = img.naturalWidth || img.width;
+            const svgH = img.naturalHeight || img.height;
+            const pad =
+              parseFloat(getComputedStyle(svgContainer).paddingLeft) || 0;
+
+            const canvas = document.createElement("canvas");
+            canvas.width = svgW + pad * 2;
+            canvas.height = svgH + pad * 2;
+
+            const ctx = canvas.getContext("2d");
+            const rootStyle = getComputedStyle(document.documentElement);
+            const panelTop = rootStyle.getPropertyValue("--panel").trim();
+            const panelBottom = rootStyle.getPropertyValue("--panel2").trim();
+            const bgTop = panelTop || "#15171d";
+            const bgBottom = panelBottom || "#101218";
+
+            const gradient = ctx.createLinearGradient(
+              0,
+              0,
+              0,
+              canvas.height
+            );
+            gradient.addColorStop(0, bgTop);
+            gradient.addColorStop(1, bgBottom);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.drawImage(img, pad, pad);
+            URL.revokeObjectURL(url);
+            saveCanvasAsJpg(canvas);
+          };
+          img.onerror = function () {
+            URL.revokeObjectURL(url);
+            alert("Error rendering SVG to image. Try again.");
+          };
+          img.src = url;
         };
-        img.onerror = function () {
-          alert("Error rendering SVG to image. Try again.");
-        };
-        img.src = url;
+
+        run();
       }
 
       // Upload GLOBAL icon → base64
@@ -1461,7 +1844,7 @@
 
       // events
       templateSelect.addEventListener("change", () =>
-        applyTemplate(templateSelect.value)
+        applyTemplateSelection(templateSelect.value)
       );
       fontFamilySelect.addEventListener("change", () => {
         loadGoogleFont();
@@ -1476,6 +1859,8 @@
         updatePerIconVisibility();
         generateSVG();
       });
+      if (saveTemplateBtn)
+        saveTemplateBtn.addEventListener("click", saveCurrentAsTemplate);
 
       [
         layoutModeSelect,
@@ -1533,6 +1918,7 @@
       // init
       (function init() {
         preloadFonts();
+        refreshTemplateDropdown("mlbb");
         loadGoogleFont();
         applyTemplate("mlbb");
       })();

@@ -223,7 +223,7 @@
       #svgContainer {
         padding: 14px;
         overflow: auto;
-        height: 100%;
+        margin: 0 auto;
       }
       .error {
         padding: 10px 12px;
