@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -110,7 +110,8 @@
         padding: 12px;
         border-radius: 12px;
         border: 1px solid var(--border);
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
           "Liberation Mono", "Courier New", monospace;
         font-size: 13px;
         background: #fff;
@@ -185,7 +186,8 @@
         margin: 0;
         white-space: pre-wrap;
         word-break: break-word;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
           "Liberation Mono", "Courier New", monospace;
         font-size: 12.5px;
         line-height: 1.4;
@@ -232,7 +234,9 @@
 
         <div class="controls">
           <button id="generateBtn">Generate Table</button>
-          <button id="downloadBtn" class="secondary">Download Table as Image</button>
+          <button id="downloadBtn" class="secondary">
+            Download Table as Image
+          </button>
           <button id="exportCsvBtn" class="ghost">Export CSV</button>
           <button id="clearBtn" class="ghost">Clear</button>
         </div>
@@ -260,8 +264,11 @@
         </div>
 
         <div class="tabs">
-          <button class="tab active" data-script="gamerxtream">GamerXtream</button>
+          <button class="tab active" data-script="gamerxtream">
+            GamerXtream
+          </button>
           <button class="tab" data-script="nexone">Nexone</button>
+          <button class="tab" data-script="taptopup">TapTopup</button>
         </div>
 
         <pre id="scriptCode"></pre>
@@ -389,6 +396,99 @@ document.querySelectorAll("#productList .card-product").forEach((card) => {
 });
 
 console.log(JSON.stringify(Array.from(productsMap.values())));`,
+
+        taptopup: `function parsePrice(p) {
+  const cleaned = String(p ?? "").replace(/[^\\d.,-]/g, "").trim();
+  if (!cleaned) return NaN;
+
+  const hasComma = cleaned.includes(",");
+  const hasDot = cleaned.includes(".");
+
+  if (hasComma && hasDot) {
+    const lastComma = cleaned.lastIndexOf(",");
+    const lastDot = cleaned.lastIndexOf(".");
+    if (lastComma > lastDot) {
+      return Number.parseFloat(cleaned.replace(/\\./g, "").replace(",", "."));
+    }
+    return Number.parseFloat(cleaned.replace(/,/g, ""));
+  }
+
+  if (hasComma) {
+    const decimals = cleaned.split(",").pop();
+    if (decimals && decimals.length <= 2) {
+      return Number.parseFloat(cleaned.replace(/,/g, "."));
+    }
+    return Number.parseFloat(cleaned.replace(/,/g, ""));
+  }
+
+  if (hasDot) {
+    const decimals = cleaned.split(".").pop();
+    if (decimals && decimals.length <= 2) {
+      return Number.parseFloat(cleaned);
+    }
+    return Number.parseFloat(cleaned.replace(/\\./g, ""));
+  }
+
+  return Number.parseFloat(cleaned);
+}
+
+const replace = {
+  "Weekly Diamond Pass": "WDP",
+};
+
+const skip = [
+  "Weekly Diamond Pass x2",
+  "Weekly Diamond Pass x3",
+  "Weekly Diamond Pass x4",
+  "Weekly Diamond Pass x5",
+];
+
+function extractQtyFromName(name) {
+  const plusMatch = name.match(/(\\d[\\d,]*)\\s*Diamonds?\\s*\\+\\s*(\\d[\\d,]*)/i);
+  if (plusMatch) {
+    const base = Number.parseInt(plusMatch[1].replace(/,/g, ""), 10);
+    const bonus = Number.parseInt(plusMatch[2].replace(/,/g, ""), 10);
+    if (Number.isFinite(base) && Number.isFinite(bonus)) {
+      return String(base + bonus);
+    }
+  }
+
+  const m = name.match(/(\\d[\\d,]*)\\s*Diamonds?/i);
+  if (m) return m[1].replace(/,/g, "");
+  return name;
+}
+
+const productsMap = new Map();
+
+document.querySelectorAll("input.radio-nominale").forEach((inp) => {
+  const card = inp.closest("div");
+  if (!card) return;
+
+  const productId = inp.value;
+  const nameEl = card.querySelector(".product-name");
+  const priceEl = card.querySelector(".currency-idr1");
+  if (!nameEl || !priceEl) return;
+
+  let name = nameEl.textContent.trim();
+  if (skip.includes(name)) return;
+  name = replace[name] ?? name;
+
+  const originalPrice = parsePrice(priceEl.textContent.trim());
+  if (!Number.isFinite(originalPrice)) return;
+
+  const sellingPrice = Number((originalPrice * 1.04).toFixed(2));
+
+  productsMap.set(productId || name, {
+    id: productId,
+    qty: extractQtyFromName(name),
+    name,
+    price: \`PHP \${sellingPrice.toLocaleString("en-PH")}\`,
+    originalPrice,
+    sellingPrice,
+  });
+});
+
+console.log(JSON.stringify(Array.from(productsMap.values())));`,
       };
 
       const scriptCodeEl = document.getElementById("scriptCode");
@@ -398,8 +498,13 @@ console.log(JSON.stringify(Array.from(productsMap.values())));`,
       function setActiveScript(key) {
         activeScriptKey = key;
         scriptCodeEl.textContent = SCRIPT_LIBRARY[key] ?? "";
+        const scriptNameByKey = {
+          gamerxtream: "GamerXtream",
+          nexone: "Nexone",
+          taptopup: "TapTopup",
+        };
         activeScriptLabel.textContent =
-          "Script: " + (key === "gamerxtream" ? "GamerXtream" : "Nexone");
+          "Script: " + (scriptNameByKey[key] ?? key);
 
         document.querySelectorAll(".tab").forEach((btn) => {
           btn.classList.toggle("active", btn.dataset.script === key);
@@ -407,7 +512,9 @@ console.log(JSON.stringify(Array.from(productsMap.values())));`,
       }
 
       document.querySelectorAll(".tab").forEach((btn) => {
-        btn.addEventListener("click", () => setActiveScript(btn.dataset.script));
+        btn.addEventListener("click", () =>
+          setActiveScript(btn.dataset.script),
+        );
       });
 
       document.getElementById("copyBtn").addEventListener("click", async () => {
@@ -486,7 +593,9 @@ console.log(JSON.stringify(Array.from(productsMap.values())));`,
           .replaceAll("'", "&#039;");
       }
 
-      document.getElementById("generateBtn").addEventListener("click", generateTable);
+      document
+        .getElementById("generateBtn")
+        .addEventListener("click", generateTable);
 
       document.getElementById("clearBtn").addEventListener("click", () => {
         document.getElementById("dataInput").value = "";
@@ -501,7 +610,9 @@ console.log(JSON.stringify(Array.from(productsMap.values())));`,
         if (!input) return alert("No JSON found.");
 
         const csvRows = [];
-        csvRows.push(["ITEM", "ORIGINAL PRICE", "SELLING PRICE", "MARGIN"].join(","));
+        csvRows.push(
+          ["ITEM", "ORIGINAL PRICE", "SELLING PRICE", "MARGIN"].join(","),
+        );
 
         try {
           const data = JSON.parse(input);
@@ -518,11 +629,20 @@ console.log(JSON.stringify(Array.from(productsMap.values())));`,
             const margin = selling - original;
 
             // quote item name to protect commas
-            csvRows.push([`"${name.replaceAll('"', '""')}"`, original, selling, margin].join(","));
+            csvRows.push(
+              [
+                `"${name.replaceAll('"', '""')}"`,
+                original,
+                selling,
+                margin,
+              ].join(","),
+            );
           });
 
           const csvContent = csvRows.join("\n");
-          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+          const blob = new Blob([csvContent], {
+            type: "text/csv;charset=utf-8;",
+          });
 
           const formattedDate = formatDate(new Date());
 
@@ -535,7 +655,9 @@ console.log(JSON.stringify(Array.from(productsMap.values())));`,
         }
       }
 
-      document.getElementById("exportCsvBtn").addEventListener("click", exportCSV);
+      document
+        .getElementById("exportCsvBtn")
+        .addEventListener("click", exportCSV);
 
       function formatDate(now) {
         const mm = String(now.getMonth() + 1).padStart(2, "0");
@@ -547,52 +669,54 @@ console.log(JSON.stringify(Array.from(productsMap.values())));`,
       /***********************
        * DOWNLOAD TABLE AS IMAGE (ITEM + PRICE ONLY)
        ***********************/
-      document.getElementById("downloadBtn").addEventListener("click", async () => {
-        const table = document.getElementById("priceTable");
-        const tbody = table.querySelector("tbody");
-        if (!tbody || tbody.children.length === 0) {
-          alert("Generate a table first.");
-          return;
-        }
+      document
+        .getElementById("downloadBtn")
+        .addEventListener("click", async () => {
+          const table = document.getElementById("priceTable");
+          const tbody = table.querySelector("tbody");
+          if (!tbody || tbody.children.length === 0) {
+            alert("Generate a table first.");
+            return;
+          }
 
-        // Clone and keep only ITEM + SELLING PRICE
-        const clone = table.cloneNode(true);
+          // Clone and keep only ITEM + SELLING PRICE
+          const clone = table.cloneNode(true);
 
-        // Remove columns by index (safe way): keep indices [0,2]
-        const keep = new Set([0, 2]);
+          // Remove columns by index (safe way): keep indices [0,2]
+          const keep = new Set([0, 2]);
 
-        clone.querySelectorAll("tr").forEach((row) => {
-          const cells = Array.from(row.children);
-          cells.forEach((cell, idx) => {
-            if (!keep.has(idx)) cell.remove();
+          clone.querySelectorAll("tr").forEach((row) => {
+            const cells = Array.from(row.children);
+            cells.forEach((cell, idx) => {
+              if (!keep.has(idx)) cell.remove();
+            });
           });
+
+          // Rename header "SELLING PRICE" -> "PRICE"
+          const ths = clone.querySelectorAll("thead th");
+          if (ths[1]) ths[1].textContent = "PRICE";
+
+          const hidden = document.createElement("div");
+          hidden.style.position = "absolute";
+          hidden.style.left = "-9999px";
+          hidden.style.top = "0";
+          hidden.style.background = "#fff";
+          hidden.style.padding = "12px";
+          hidden.appendChild(clone);
+          document.body.appendChild(hidden);
+
+          const formattedDate = formatDate(new Date());
+
+          try {
+            const canvas = await html2canvas(clone, { scale: 3 });
+            const link = document.createElement("a");
+            link.download = `MLBB_Price_List_${formattedDate}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+          } finally {
+            hidden.remove();
+          }
         });
-
-        // Rename header "SELLING PRICE" -> "PRICE"
-        const ths = clone.querySelectorAll("thead th");
-        if (ths[1]) ths[1].textContent = "PRICE";
-
-        const hidden = document.createElement("div");
-        hidden.style.position = "absolute";
-        hidden.style.left = "-9999px";
-        hidden.style.top = "0";
-        hidden.style.background = "#fff";
-        hidden.style.padding = "12px";
-        hidden.appendChild(clone);
-        document.body.appendChild(hidden);
-
-        const formattedDate = formatDate(new Date());
-
-        try {
-          const canvas = await html2canvas(clone, { scale: 3 });
-          const link = document.createElement("a");
-          link.download = `MLBB_Price_List_${formattedDate}.png`;
-          link.href = canvas.toDataURL("image/png");
-          link.click();
-        } finally {
-          hidden.remove();
-        }
-      });
 
       // init
       setActiveScript("gamerxtream");
