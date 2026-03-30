@@ -476,7 +476,7 @@ document.querySelectorAll("input.radio-nominale").forEach((inp) => {
   const originalPrice = parsePrice(priceEl.textContent.trim());
   if (!Number.isFinite(originalPrice)) return;
 
-  const sellingPrice = Number((originalPrice * 1.04).toFixed(2));
+  const sellingPrice = Math.round(originalPrice * 1.04);
 
   productsMap.set(productId || name, {
     id: productId,
