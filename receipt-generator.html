@@ -12,6 +12,7 @@
         --text: #eaf4f8;
         --muted: #b7c8d1;
         --green: #25d36a;
+        --panel-input: #03131b;
       }
       * {
         box-sizing: border-box;
@@ -23,24 +24,25 @@
         min-height: 100vh;
         background: var(--page);
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
-        padding: 24px;
+        padding: 32px 24px 48px;
         color: var(--text);
       }
 
       .wrap {
-        width: min(1200px, 100%);
+        width: min(1440px, 100%);
       }
 
       .panel {
         width: 100%;
         background: rgba(7, 26, 36, 0.65);
         border: 1px solid rgba(255, 255, 255, 0.06);
-        padding: 14px;
+        padding: 18px;
         box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
         margin-bottom: 14px;
-        border-radius: 12px;
+        border-radius: 16px;
+        backdrop-filter: blur(12px);
       }
 
       label {
@@ -54,7 +56,7 @@
       select,
       input {
         width: 100%;
-        background: #03131b;
+        background: var(--panel-input);
         border: 1px solid rgba(255, 255, 255, 0.1);
         color: var(--text);
         padding: 10px 10px;
@@ -62,24 +64,58 @@
         border-radius: 10px;
       }
 
+      input[type="color"] {
+        min-height: 44px;
+        padding: 6px;
+        cursor: pointer;
+      }
+
       textarea {
-        min-height: 130px;
+        min-height: 420px;
         resize: vertical;
         line-height: 1.3;
       }
 
       .grid2 {
         display: grid;
-        grid-template-columns: 1.6fr 1fr;
-        gap: 12px;
+        grid-template-columns: minmax(0, 1.45fr) minmax(360px, 460px);
+        gap: 18px;
         align-items: start;
+      }
+
+      .main-col {
+        min-width: 0;
+      }
+
+      .side-col {
+        min-width: 0;
+        position: sticky;
+        top: 24px;
+      }
+
+      .side-stack {
+        display: grid;
+        gap: 14px;
+      }
+
+      .control-card {
+        padding: 14px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .field-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
       }
 
       .btnrow {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
-        margin-top: 10px;
+        margin-top: 0;
       }
 
       button {
@@ -126,14 +162,87 @@
         display: none;
       }
 
+      .section-title {
+        margin: 0 0 10px 0;
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: 0.02em;
+      }
+
+      .custom-menu {
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .custom-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .custom-grid .full {
+        grid-column: 1 / -1;
+      }
+
+      .theme-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .saved-theme-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto auto;
+        gap: 10px;
+        align-items: end;
+        margin-top: 12px;
+      }
+
+      .logo-preview {
+        width: 92px;
+        height: 54px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        padding: 6px;
+      }
+
+      .logo-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+
       /* Receipt template */
       .receipt {
+        --receipt-bg-start: #0b2734;
+        --receipt-bg-end: #071a24;
+        --receipt-text: #eaf4f8;
+        --receipt-muted: #b7c8d1;
+        --receipt-accent: #25d36a;
+        --receipt-divider: rgba(255, 255, 255, 0.08);
+        --receipt-glow: rgba(255, 255, 255, 0.08);
         width: 420px;
-        background: var(--bg);
+        background:
+          radial-gradient(circle at top right, var(--receipt-glow), transparent 38%),
+          linear-gradient(180deg, var(--receipt-bg-start), var(--receipt-bg-end));
         padding: 22px 26px;
         box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
         border-radius: 12px;
         overflow: hidden;
+        color: var(--receipt-text);
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.06);
       }
 
       .text-norm {
@@ -147,7 +256,7 @@
         margin-top: 1.5rem !important;
       }
       .text-white {
-        color: var(--text) !important;
+        color: var(--receipt-text) !important;
       }
       .break-words {
         overflow-wrap: anywhere;
@@ -158,14 +267,14 @@
         font-size: 14px;
         font-weight: 400;
         letter-spacing: 0px;
-        color: #04b962 !important;
+        color: var(--receipt-accent) !important;
         margin: 0;
         padding: 0;
       }
       .top-sub {
         font-size: 12px;
         font-weight: 400;
-        color: white;
+        color: var(--receipt-text);
         letter-spacing: 0px !important;
         margin: 0px;
       }
@@ -191,12 +300,18 @@
         height: 64px;
       }
       .receipt-header-logo img {
-        height: 140px;
-        width: auto;
-        object-fit: contain;
-        display: block;
-        position: absolute;
-        left: 20px;
+          max-width: 100%;
+          /* max-height: 100%; */
+          width: auto;
+          height: auto;
+          object-fit: contain;
+          display: block;
+          position: absolute;
+          left: 12px;
+          top: 90%;
+          right: auto;
+          transform: translateY(-50%);
+          margin: 0;
       }
 
       .usrr {
@@ -210,7 +325,7 @@
         max-width: 720px;
       }
       .Nickname {
-        color: var(--muted);
+        color: var(--receipt-muted);
         opacity: 1;
       }
       .idcuy p,
@@ -220,12 +335,12 @@
 
       .section-divider {
         height: 1px;
-        background: rgba(255, 255, 255, 0.08);
+        background: var(--receipt-divider);
         margin: 18px 0;
       }
 
       .status-green {
-        color: var(--green);
+        color: var(--receipt-accent);
         font-weight: 700;
       }
 
@@ -258,6 +373,12 @@
         gap: 12px;
       }
 
+      @media (min-width: 1320px) {
+        .out-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+
       .card {
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 12px;
@@ -277,11 +398,27 @@
       /* HTML preview (live) */
       .preview-box {
         padding: 10px;
+        overflow: hidden;
       }
       .preview-scale {
         transform: scale(0.72);
         transform-origin: top left;
         width: calc(420px * 0.72);
+        overflow: hidden;
+      }
+
+      .preview-scale > .receipt {
+        margin: 0;
+      }
+
+      .preview-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.02);
+        cursor: pointer;
       }
 
       .card-actions {
@@ -364,8 +501,41 @@
       }
 
       @media (max-width: 980px) {
+        body {
+          padding: 20px 16px 28px;
+        }
+        .wrap {
+          width: 100%;
+        }
         .grid2 {
           grid-template-columns: 1fr;
+        }
+        .side-col {
+          position: static;
+        }
+        textarea {
+          min-height: 280px;
+        }
+      }
+      @media (max-width: 760px) {
+        .panel {
+          padding: 14px;
+        }
+        .field-grid-2 {
+          grid-template-columns: 1fr;
+        }
+        .saved-theme-row {
+          grid-template-columns: 1fr 1fr;
+        }
+        .saved-theme-row button {
+          width: 100%;
+        }
+        .btnrow button {
+          flex: 1 1 calc(50% - 10px);
+        }
+        .out-panel-top {
+          flex-direction: column;
+          align-items: stretch;
         }
       }
       @media (max-width: 860px) {
@@ -375,10 +545,40 @@
       }
       @media (max-width: 540px) {
         body {
-          padding: 14px;
+          padding: 12px 12px 24px;
+        }
+        textarea {
+          min-height: 220px;
+        }
+        .custom-grid {
+          grid-template-columns: 1fr;
+        }
+        .saved-theme-row {
+          grid-template-columns: 1fr;
+        }
+        .theme-actions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+        .logo-preview {
+          width: 100%;
+          min-height: 68px;
+        }
+        .theme-actions .logo-preview {
+          grid-column: 1 / -1;
+        }
+        .btnrow {
+          display: grid;
+          grid-template-columns: 1fr;
+        }
+        .btnrow button {
+          width: 100%;
         }
         .out-grid {
           grid-template-columns: 1fr;
+        }
+        .receipt-header-logo img {
+          left: 6px;
         }
         .preview-scale {
           transform: scale(0.8);
@@ -392,7 +592,7 @@
     <div class="wrap">
       <div class="panel">
         <div class="grid2">
-          <div>
+          <div class="main-col">
             <label for="batchInput">Batch IDs (one per line)</label>
             <textarea
               id="batchInput"
@@ -414,7 +614,9 @@
             </div>
           </div>
 
-          <div>
+          <div class="side-col">
+            <div class="side-stack">
+            <div class="control-card">
             <label for="pkg">Package</label>
             <select id="pkg">
               <option value="5|5|0">5 Diamonds ( 5 + 0 )</option>
@@ -433,7 +635,82 @@
               <option value="500|250|250">500 Diamonds (250 + 250)</option>
               <option value="1000|500|500">1000 Diamonds (500 + 500)</option>
             </select>
+            </div>
 
+            <div class="custom-menu">
+              <p class="section-title">Receipt Customization</p>
+              <div class="custom-grid">
+                <div class="full">
+                  <label for="themePreset">Theme Preset</label>
+                  <select id="themePreset">
+                    <option value="midnight">Midnight</option>
+                    <option value="ocean">Ocean</option>
+                    <option value="royal">Royal</option>
+                    <option value="ember">Ember</option>
+                    <option value="forest">Forest</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="bgStart">Background Start</label>
+                  <input id="bgStart" type="color" value="#0b2734" />
+                </div>
+
+                <div>
+                  <label for="bgEnd">Background End</label>
+                  <input id="bgEnd" type="color" value="#071a24" />
+                </div>
+
+                <div>
+                  <label for="accentColor">Accent Color</label>
+                  <input id="accentColor" type="color" value="#25d36a" />
+                </div>
+
+                <div class="full">
+                  <label for="logoUpload">Upload Logo</label>
+                  <input id="logoUpload" type="file" accept="image/*" />
+                </div>
+              </div>
+
+              <div class="theme-actions">
+                <div class="logo-preview">
+                  <img id="logoPreview" alt="Current logo preview" />
+                </div>
+                <button id="resetTheme" class="btn-secondary" type="button">
+                  Reset Theme
+                </button>
+                <button id="removeLogo" class="btn-secondary" type="button">
+                  Use Default Logo
+                </button>
+              </div>
+
+              <div class="saved-theme-row">
+                <div>
+                  <label for="themeName">Save Theme As</label>
+                  <input
+                    id="themeName"
+                    type="text"
+                    maxlength="40"
+                    placeholder="My blue brand"
+                  />
+                </div>
+                <div>
+                  <label for="savedThemeSelect">Saved Themes</label>
+                  <select id="savedThemeSelect">
+                    <option value="">Select saved theme</option>
+                  </select>
+                </div>
+                <button id="saveTheme" class="btn-secondary" type="button">
+                  Save Theme
+                </button>
+                <button id="deleteTheme" class="btn-secondary" type="button">
+                  Delete
+                </button>
+              </div>
+            </div>
+
+            <div class="control-card">
             <div class="btnrow">
               <button id="genBatch">Generate Batch</button>
               <button id="stop" class="btn-secondary" type="button" disabled>
@@ -450,6 +727,8 @@
             <div class="hint" style="margin-top: 10px">
               Tip: For downloads to work reliably, open via
               <code>http://localhost</code> (not <code>file://</code>).
+            </div>
+            </div>
             </div>
           </div>
         </div>
@@ -561,6 +840,133 @@
         // never via document.getElementById for receipt fields.
         const receiptEl = $("receipt");
         const r$ = (selector) => receiptEl.querySelector(selector);
+        const defaultLogoSrc = r$("#logoImg").src;
+        const SAVED_THEMES_KEY = "mlbb-receipt-saved-themes";
+        const THEME_PRESETS = {
+          midnight: {
+            bgStart: "#0b2734",
+            bgEnd: "#071a24",
+            accent: "#25d36a",
+          },
+          ocean: {
+            bgStart: "#11334f",
+            bgEnd: "#071826",
+            accent: "#3ad5ff",
+          },
+          royal: {
+            bgStart: "#281e56",
+            bgEnd: "#120f2e",
+            accent: "#ffca5f",
+          },
+          ember: {
+            bgStart: "#4a1f1f",
+            bgEnd: "#160d10",
+            accent: "#ff9052",
+          },
+          forest: {
+            bgStart: "#13382d",
+            bgEnd: "#081a15",
+            accent: "#79e28b",
+          },
+        };
+        let savedThemes = {};
+
+        function getCurrentThemeConfig() {
+          return {
+            bgStart: $("bgStart").value,
+            bgEnd: $("bgEnd").value,
+            accent: $("accentColor").value,
+            logoSrc: r$("#logoImg").src || defaultLogoSrc,
+          };
+        }
+
+        function loadSavedThemes() {
+          try {
+            const raw = localStorage.getItem(SAVED_THEMES_KEY);
+            savedThemes = raw ? JSON.parse(raw) : {};
+          } catch {
+            savedThemes = {};
+          }
+        }
+
+        function persistSavedThemes() {
+          localStorage.setItem(SAVED_THEMES_KEY, JSON.stringify(savedThemes));
+        }
+
+        function renderSavedThemeOptions(selectedName = "") {
+          const select = $("savedThemeSelect");
+          select.innerHTML = '<option value="">Select saved theme</option>';
+
+          Object.keys(savedThemes)
+            .sort((a, b) => a.localeCompare(b))
+            .forEach((name) => {
+              const option = document.createElement("option");
+              option.value = name;
+              option.textContent = name;
+              if (name === selectedName) option.selected = true;
+              select.appendChild(option);
+            });
+        }
+
+        function applySavedTheme(name) {
+          const theme = savedThemes[name];
+          if (!theme) return;
+
+          $("bgStart").value = theme.bgStart;
+          $("bgEnd").value = theme.bgEnd;
+          $("accentColor").value = theme.accent;
+          setReceiptTheme(theme);
+          setReceiptLogo(theme.logoSrc || defaultLogoSrc);
+          syncPresetLabel();
+          $("savedThemeSelect").value = name;
+          $("themeName").value = name;
+        }
+
+        function setReceiptTheme({ bgStart, bgEnd, accent }) {
+          receiptEl.style.setProperty("--receipt-bg-start", bgStart);
+          receiptEl.style.setProperty("--receipt-bg-end", bgEnd);
+          receiptEl.style.setProperty("--receipt-accent", accent);
+        }
+
+        function syncPresetLabel() {
+          const current = {
+            bgStart: $("bgStart").value.toLowerCase(),
+            bgEnd: $("bgEnd").value.toLowerCase(),
+            accent: $("accentColor").value.toLowerCase(),
+          };
+          const match = Object.entries(THEME_PRESETS).find(([, preset]) => {
+              return (
+                preset.bgStart.toLowerCase() === current.bgStart &&
+                preset.bgEnd.toLowerCase() === current.bgEnd &&
+                preset.accent.toLowerCase() === current.accent
+              );
+            $("themePreset").value = match ? match[0] : "custom";
+          });
+        }
+
+        function applyThemePreset(name) {
+          const preset = THEME_PRESETS[name] || THEME_PRESETS.midnight;
+          $("themePreset").value = name in THEME_PRESETS ? name : "custom";
+          $("bgStart").value = preset.bgStart;
+          $("bgEnd").value = preset.bgEnd;
+          $("accentColor").value = preset.accent;
+          setReceiptTheme(preset);
+        }
+
+        function syncThemeFromInputs() {
+          setReceiptTheme({
+            bgStart: $("bgStart").value,
+            bgEnd: $("bgEnd").value,
+            accent: $("accentColor").value,
+          });
+          syncPresetLabel();
+        }
+
+        function setReceiptLogo(src) {
+          const nextSrc = src || defaultLogoSrc;
+          r$("#logoImg").src = nextSrc;
+          $("logoPreview").src = nextSrc;
+        }
 
         function showError(text) {
           $("msg").style.display = "block";
@@ -671,7 +1077,7 @@
 
         async function captureReceiptToDataUrl() {
           const canvas = await html2canvas(receiptEl, {
-            backgroundColor: "#071a24",
+            backgroundColor: null,
             scale: 2,
             useCORS: true,
             allowTaint: false,
@@ -692,8 +1098,13 @@
           return clone;
         }
 
+        function getPreviewScale() {
+          return window.matchMedia("(max-width: 540px)").matches ? 0.8 : 0.72;
+        }
+
         async function renderOne({ userId, zoneId, pkg }) {
           // set values on OFFSCREEN template only
+          syncThemeFromInputs();
           r$("#regionTitle").textContent = "MLBB PH";
           r$("#itemLine").textContent = buildItemLine(pkg);
           r$("#idVal").textContent = `${userId} (${zoneId})`;
@@ -756,16 +1167,15 @@
           const previewBox = document.createElement("div");
           previewBox.className = "preview-box";
 
-          const scaled = document.createElement("div");
-          scaled.className = "preview-scale";
-          scaled.appendChild(previewNode);
+          const thumb = document.createElement("img");
+          thumb.className = "preview-image";
+          thumb.src = dataUrl;
+          thumb.alt = `Receipt preview for ${userId} (${zoneId})`;
 
-          scaled.style.cursor = "pointer";
-          scaled.addEventListener("click", () => {
-            openModal(`Preview — ${userId} (${zoneId})`, previewNode.cloneNode(true));
+          thumb.addEventListener("click", () => {
+            openModal(`Preview � ${userId} (${zoneId})`, previewNode.cloneNode(true));
           });
-
-          previewBox.appendChild(scaled);
+          previewBox.appendChild(thumb);
 
           const actions = document.createElement("div");
           actions.className = "card-actions";
@@ -819,6 +1229,74 @@
         }
 
         $("downloadAll").addEventListener("click", downloadAllSequential);
+        $("themePreset").addEventListener("change", (e) => {
+          if (e.target.value === "custom") return;
+          applyThemePreset(e.target.value);
+          $("savedThemeSelect").value = "";
+        });
+        ["bgStart", "bgEnd", "accentColor"].forEach((id) => {
+          $(id).addEventListener("input", () => {
+            syncThemeFromInputs();
+            $("savedThemeSelect").value = "";
+          });
+        });
+        $("logoUpload").addEventListener("change", (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = () => {
+            if (typeof reader.result === "string") {
+              setReceiptLogo(reader.result);
+              $("savedThemeSelect").value = "";
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+        $("resetTheme").addEventListener("click", () => {
+          applyThemePreset("midnight");
+          $("savedThemeSelect").value = "";
+        });
+        $("removeLogo").addEventListener("click", () => {
+          $("logoUpload").value = "";
+          setReceiptLogo(defaultLogoSrc);
+          $("savedThemeSelect").value = "";
+        });
+        $("saveTheme").addEventListener("click", () => {
+          const name = $("themeName").value.trim();
+          if (!name) {
+            showError("Enter a theme name before saving.");
+            return;
+          }
+
+          clearError();
+          savedThemes[name] = getCurrentThemeConfig();
+          persistSavedThemes();
+          renderSavedThemeOptions(name);
+        });
+        $("savedThemeSelect").addEventListener("change", (e) => {
+          const name = e.target.value;
+          if (!name) return;
+          clearError();
+          applySavedTheme(name);
+        });
+        $("deleteTheme").addEventListener("click", () => {
+          const name =
+            $("savedThemeSelect").value || $("themeName").value.trim();
+
+          if (!name || !savedThemes[name]) {
+            showError("Select a saved theme to delete.");
+            return;
+          }
+
+          clearError();
+          delete savedThemes[name];
+          persistSavedThemes();
+          renderSavedThemeOptions();
+          if ($("themeName").value.trim() === name) {
+            $("themeName").value = "";
+          }
+        });
 
         $("genBatch").addEventListener("click", async () => {
           clearError();
@@ -902,12 +1380,22 @@
           $("genBatch").disabled = false;
           $("batchInput").value = "";
           $("pkg").value = "5|5|0";
+          $("logoUpload").value = "";
+          $("themeName").value = "";
+          $("savedThemeSelect").value = "";
+          applyThemePreset("midnight");
+          setReceiptLogo(defaultLogoSrc);
           $("outGrid").innerHTML = "";
           $("outPanel").style.display = "none";
           closeModal();
           generated.length = 0;
           setDownloadAllEnabled(false);
         });
+
+        loadSavedThemes();
+        renderSavedThemeOptions();
+        applyThemePreset("midnight");
+        setReceiptLogo(defaultLogoSrc);
       </script>
     </div>
   </body>
