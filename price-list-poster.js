@@ -91,6 +91,9 @@
       const itemCount = document.getElementById("itemCount");
       const modePill = document.getElementById("modePill");
       const saveTemplateBtn = document.getElementById("saveTemplateBtn");
+      const exportTemplatesBtn = document.getElementById("exportTemplatesBtn");
+      const importTemplatesBtn = document.getElementById("importTemplatesBtn");
+      const importTemplatesInput = document.getElementById("importTemplatesInput");
 
       const stateControls = [
         layoutModeSelect,
@@ -363,6 +366,146 @@
         refreshTemplateDropdown(selected);
         templateSelect.value = selected;
         alert(`Template "${name}" saved.`);
+      }
+
+      function normalizeImportedTemplate(entry) {
+        if (!entry || typeof entry !== "object") return null;
+        const name = String(entry.name || "").trim();
+        const state = entry.state;
+        if (!name || !state || typeof state !== "object") return null;
+
+        const id = toTemplateId(name);
+        return {
+          id,
+          name,
+          state,
+          createdAt: Number(entry.createdAt) || Date.now(),
+          updatedAt: Number(entry.updatedAt) || Date.now(),
+        };
+      }
+
+      function exportSavedTemplates() {
+        const saved = loadSavedTemplates();
+        if (!saved.length) {
+          alert("No saved templates to export.");
+          return;
+        }
+
+        const payload = {
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          templates: saved,
+        };
+
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "price-list-templates.json";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function mergeImportedTemplates(importedTemplates) {
+        const current = loadSavedTemplates();
+        const byName = new Map(
+          current.map((tpl) => [String(tpl.name || "").toLowerCase(), tpl])
+        );
+        let addedCount = 0;
+        let replacedCount = 0;
+
+        importedTemplates.forEach((tpl) => {
+          const key = tpl.name.toLowerCase();
+          const existingByName = byName.get(key);
+
+          if (existingByName) {
+            const shouldOverride = confirm(
+              `Template "${tpl.name}" already exists. Override it?`
+            );
+            if (!shouldOverride) return;
+
+            const nextItem = {
+              ...existingByName,
+              id: toTemplateId(tpl.name),
+              name: tpl.name,
+              state: tpl.state,
+              updatedAt: Date.now(),
+            };
+            const idx = current.findIndex((x) => x.id === existingByName.id);
+            if (idx >= 0) current[idx] = nextItem;
+            byName.set(key, nextItem);
+            replacedCount++;
+            return;
+          }
+
+          const nextItem = {
+            ...tpl,
+            id: toTemplateId(tpl.name),
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          };
+          current.push(nextItem);
+          byName.set(key, nextItem);
+          addedCount++;
+        });
+
+        if (!addedCount && !replacedCount) return null;
+        return { templates: current, addedCount, replacedCount };
+      }
+
+      function importTemplatesFromFile(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(String(reader.result || "{}"));
+            const list = Array.isArray(parsed)
+              ? parsed
+              : Array.isArray(parsed.templates)
+              ? parsed.templates
+              : [];
+
+            const normalized = list
+              .map(normalizeImportedTemplate)
+              .filter(Boolean);
+
+            if (!normalized.length) {
+              alert("No valid templates found in this file.");
+              return;
+            }
+
+            const merged = mergeImportedTemplates(normalized);
+            if (!merged) {
+              alert("Import cancelled or no changes were made.");
+              return;
+            }
+
+            if (!persistSavedTemplates(merged.templates)) {
+              alert("Failed to save imported templates.");
+              return;
+            }
+
+            const selectValue = `${SAVED_TEMPLATE_PREFIX}${normalized[0].id}`;
+            refreshTemplateDropdown(selectValue);
+            templateSelect.value = selectValue;
+
+            alert(
+              `Import complete. Added: ${merged.addedCount}, Replaced: ${merged.replacedCount}.`
+            );
+          } catch (err) {
+            console.warn("Template import failed:", err);
+            alert("Invalid template JSON file.");
+          } finally {
+            importTemplatesInput.value = "";
+          }
+        };
+        reader.onerror = () => {
+          importTemplatesInput.value = "";
+          alert("Failed to read template file.");
+        };
+        reader.readAsText(file);
       }
 
       // ===== Table Editor Elements =====
@@ -1861,6 +2004,16 @@
       });
       if (saveTemplateBtn)
         saveTemplateBtn.addEventListener("click", saveCurrentAsTemplate);
+      if (exportTemplatesBtn)
+        exportTemplatesBtn.addEventListener("click", exportSavedTemplates);
+      if (importTemplatesBtn && importTemplatesInput)
+        importTemplatesBtn.addEventListener("click", () =>
+          importTemplatesInput.click()
+        );
+      if (importTemplatesInput)
+        importTemplatesInput.addEventListener("change", (e) =>
+          importTemplatesFromFile(e.target.files && e.target.files[0])
+        );
 
       [
         layoutModeSelect,
