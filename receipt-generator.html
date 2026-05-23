@@ -619,6 +619,9 @@
             <div class="control-card">
             <label for="pkg">Package</label>
             <select id="pkg">
+              <option value="Weekly Elite Bundle">Weekly Elite Bundle</option>
+              <option value="Monthly Epic Bundle">Monthly Epic Bundle</option>
+              <option value="Weekly Diamond Pass">Weekly Diamond Pass</option>
               <option value="5|5|0">5 Diamonds ( 5 + 0 )</option>
               <option value="11|10|1">11 Diamonds ( 10 + 1 )</option>
               <option value="22|20|2">22 Diamonds ( 20 + 2 )</option>
@@ -991,6 +994,11 @@
           const [displayQty, base, bonus] = pkgValue
             .split("|")
             .map((s) => s.trim());
+
+          if (! base || !bonus) {
+            return `1x qty ${displayQty}`;
+          }
+            
           return `1x qty ${displayQty} Diamonds ( ${base} + ${bonus} Bonus )`;
         }
 
