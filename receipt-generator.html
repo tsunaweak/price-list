@@ -638,6 +638,8 @@
               <option value="500|250|250">500 Diamonds (250 + 250)</option>
               <option value="1000|500|500">1000 Diamonds (500 + 500)</option>
             </select>
+            <label for="qty" style="margin-top: 12px;">Quantity</label>
+            <input id="qty" type="number" min="1" step="1" value="1" />
             </div>
 
             <div class="custom-menu">
@@ -990,16 +992,18 @@
           btn.classList.toggle("btn-disabled", !enabled);
         }
 
-        function buildItemLine(pkgValue) {
+        function buildItemLine(pkgValue, qty = 1) {
           const [displayQty, base, bonus] = pkgValue
             .split("|")
             .map((s) => s.trim());
 
+          const count = Math.max(1, parseInt(qty, 10) || 1);
+
           if (! base || !bonus) {
-            return `1x qty ${displayQty}`;
+            return `${count}x qty ${displayQty}`;
           }
-            
-          return `1x qty ${displayQty} Diamonds ( ${base} + ${bonus} Bonus )`;
+
+          return `${count}x qty ${displayQty} Diamonds ( ${base} + ${bonus} Bonus )`;
         }
 
         function formatReceiptDate(d = new Date()) {
@@ -1110,11 +1114,11 @@
           return window.matchMedia("(max-width: 540px)").matches ? 0.8 : 0.72;
         }
 
-        async function renderOne({ userId, zoneId, pkg }) {
+        async function renderOne({ userId, zoneId, pkg, qty = 1 }) {
           // set values on OFFSCREEN template only
           syncThemeFromInputs();
           r$("#regionTitle").textContent = "MLBB PH";
-          r$("#itemLine").textContent = buildItemLine(pkg);
+          r$("#itemLine").textContent = buildItemLine(pkg, qty);
           r$("#idVal").textContent = `${userId} (${zoneId})`;
           r$("#dateTimeVal").textContent = formatReceiptDate(new Date());
           r$("#txnStatusVal").textContent = "Success";
@@ -1336,6 +1340,7 @@
           }
 
           const pkg = $("pkg").value;
+          const qty = Math.max(1, parseInt($("qty").value, 10) || 1);
           showProgress(`Generating 0 / ${items.length}...`);
 
           // Sequential: each receipt fully finishes before the next begins
@@ -1352,6 +1357,7 @@
                 userId,
                 zoneId,
                 pkg,
+                qty,
               });
 
               generated.push({ userId, zoneId, dataUrl });
@@ -1388,6 +1394,7 @@
           $("genBatch").disabled = false;
           $("batchInput").value = "";
           $("pkg").value = "5|5|0";
+          $("qty").value = "1";
           $("logoUpload").value = "";
           $("themeName").value = "";
           $("savedThemeSelect").value = "";
